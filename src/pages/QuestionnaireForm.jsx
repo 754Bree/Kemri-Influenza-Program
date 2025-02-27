@@ -1,32 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TextField, Button, Container, Typography, Box } from "@mui/material";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const QuestionnaireForm = () => {
+    const navigate = useNavigate();
+
+    // State for form inputs
     const [questionnaireSN, setQuestionnaireSN] = useState("");
     const [dateCollected, setDateCollected] = useState("");
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await axios.post("http://127.0.0.1:5000/questionnaire", {
-                questionnaireSN,
-                dateCollected
-            });
+    // Function to generate Serial Number (IFP + Year + Counter)
+    const generateSerialNumber = () => {
+        const year = new Date().getFullYear();
+        const randomNum = Math.floor(1000 + Math.random() * 9000); // Random 4-digit number
+        return `IFP${year}${randomNum}`;
+    };
 
-            alert(response.data.message);
-            setQuestionnaireSN(""); // Reset fields after submission
-            setDateCollected("");
-        } catch (error) {
-            alert("Failed to submit data!");
-        }
+    // Autofill Serial Number & Date when component loads
+    useEffect(() => {
+        setQuestionnaireSN(generateSerialNumber());
+        setDateCollected(new Date().toISOString().split("T")[0]); // Format: YYYY-MM-DD
+    }, []);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log("Submitted:", { questionnaireSN, dateCollected });
+
+        // Navigate to the next form
+        navigate("/questionnaire2", { state: { questionnaireSN, dateCollected } });
     };
 
     return (
         <Container maxWidth="sm">
             <Box textAlign="center" mt={5} p={3} boxShadow={3} borderRadius={3}>
                 <Typography variant="h5" gutterBottom>
-                    Questionnaire Data Collection
+                    Questionnaire Form
                 </Typography>
                 <form onSubmit={handleSubmit}>
                     <TextField
@@ -35,8 +43,7 @@ const QuestionnaireForm = () => {
                         label="Questionnaire Serial Number"
                         variant="outlined"
                         value={questionnaireSN}
-                        onChange={(e) => setQuestionnaireSN(e.target.value)}
-                        required
+                        disabled // Prevent manual changes
                     />
                     <TextField
                         fullWidth
@@ -46,8 +53,7 @@ const QuestionnaireForm = () => {
                         type="date"
                         InputLabelProps={{ shrink: true }}
                         value={dateCollected}
-                        onChange={(e) => setDateCollected(e.target.value)}
-                        required
+                        disabled // Prevent manual changes
                     />
                     <Button
                         type="submit"
@@ -56,7 +62,7 @@ const QuestionnaireForm = () => {
                         color="primary"
                         sx={{ mt: 2 }}
                     >
-                        Submit
+                        Next
                     </Button>
                 </form>
             </Box>

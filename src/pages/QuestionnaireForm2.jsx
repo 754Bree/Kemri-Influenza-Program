@@ -1,17 +1,59 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { TextField, RadioGroup, FormControlLabel, Radio, Button, Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-
+import Swal from "sweetalert2";
+import { useFormContext } from "../context/FormContext"; // Import context
 
 const QuestionnaireForm2 = () => {
-    const { control } = useForm();
+    const { formData, updateFormData } = useFormContext(); // Get global form data
+    const { control, handleSubmit, getValues, setValue } = useForm({
+        defaultValues: formData, // Load saved data
+    });
     const navigate = useNavigate();
 
+    useEffect(() => {
+        // Set default values when component loads
+        Object.keys(formData).forEach((key) => {
+            setValue(key, formData[key]);
+        });
+    }, [formData, setValue]);
 
+    const onSubmit = (data) => {
+        const age = parseInt(data.age, 10);
+        const familyMembers = parseInt(data.familyMembers, 10);
+
+        // Validate age range
+        if (age < 15 || age > 19) {
+            Swal.fire({
+                icon: "warning",
+                title: "Invalid Age",
+                text: "Age must be between 15 and 19.",
+                confirmButtonText: "OK",
+            });
+            return;
+        }
+
+        // Validate family members range
+        if (familyMembers < 2 || familyMembers > 10) {
+            Swal.fire({
+                icon: "warning",
+                title: "Invalid Family Size",
+                text: "Family members must be between 2 and 10.",
+                confirmButtonText: "OK",
+            });
+            return;
+        }
+
+        // Save form data before navigating
+        updateFormData(data);
+
+        // Navigate to the next page
+        navigate("/questionnaire-3");
+    };
 
     return (
-        <Box sx={{ maxWidth: 500, mx: "auto", mt: 6, p: 3, border: "1px solid gray", borderRadius: 2, boxShadow: "0 2px 3px Blue" }}>
+        <Box sx={{ maxWidth: 500, mx: "auto", mt: 6, p: 3, border: "1px solid gray", borderRadius: 2, boxShadow: "0 2px 3px orange" }}>
             <Typography variant="h6">1. How old are you?</Typography>
             <Controller
                 name="age"
@@ -36,7 +78,6 @@ const QuestionnaireForm2 = () => {
                 )}
             />
 
-            {/* Question 2: Who do you stay with? */}
             <Typography variant="h6" mt={3}>2. Whom do you stay with?</Typography>
             <Controller
                 name="stayWith"
@@ -52,7 +93,6 @@ const QuestionnaireForm2 = () => {
                 )}
             />
 
-            {/* Question 3: Guardian Occupation */}
             <Typography variant="h6" mt={3}>3. What is your religion?</Typography>
             <Controller
                 name="religion"
@@ -65,28 +105,41 @@ const QuestionnaireForm2 = () => {
                         <FormControlLabel value="Muslim" control={<Radio />} label="Muslim" />
                         <FormControlLabel value="SDA" control={<Radio />} label="SDA" />
                         <FormControlLabel value="None" control={<Radio />} label="None" />
-
                     </RadioGroup>
                 )}
             />
 
-            {/* Question 1: Age Input */}
             <Typography variant="h6" mt={3}>4. How many are you in the family?</Typography>
             <Controller
                 name="familyMembers"
                 control={control}
                 defaultValue=""
-                render={({ field }) => (
-                    <TextField {...field} label="Limit is from 2 to 10" variant="outlined" fullWidth margin="normal" />
+                rules={{
+                    required: "This field is required",
+                    min: { value: 2, message: "Family size must be at least 2" },
+                    max: { value: 10, message: "Family size must be at most 10" },
+                }}
+                render={({ field, fieldState: { error } }) => (
+                    <TextField
+                        {...field}
+                        label="Limit is from 2 to 10"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        type="number"
+                        error={!!error}
+                        helperText={error ? error.message : ""}
+                    />
                 )}
             />
+
             <Button
-                type="button" // Change from "submit" to "button" to prevent form submission
+                type="button"
                 variant="contained"
                 color="primary"
                 fullWidth
                 sx={{ mt: 3 }}
-                onClick={() => navigate("/questionnaire-3")} // Navigate without form submission
+                onClick={handleSubmit(onSubmit)}
             >
                 Next
             </Button>

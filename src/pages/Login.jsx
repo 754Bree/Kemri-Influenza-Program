@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { TextField, Button, Container, Typography, Box } from "@mui/material";
+import { TextField, Button, Container, Typography, Box, IconButton, InputAdornment } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -8,7 +9,9 @@ const Login = ({ setIsLoggedIn }) => {
     const location = useLocation();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [loading, setLoading] = useState(false);
 
     // Auto-fill email if redirected from signup
     useEffect(() => {
@@ -19,10 +22,22 @@ const Login = ({ setIsLoggedIn }) => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        try {
-            const res = await axios.post("http://127.0.0.1:5000/login", { email, password });
+        setErrorMessage("");
+        setLoading(true);
 
-            if (res.status === 200) {
+        try {
+            const res = await axios.post(
+                "http://127.0.0.1:5000/login",
+                { email, password },
+                {
+                    withCredentials: true,  // Enable credentials for CORS
+                    headers: { "Content-Type": "application/json" }
+                }
+            );
+
+            console.log("Login response:", res);  // Debugging step
+            
+            if (res.status === 200 && res.data.userID) {
                 alert(res.data.message);
 
                 // Store user session
@@ -32,11 +47,15 @@ const Login = ({ setIsLoggedIn }) => {
                 localStorage.setItem("lastname", res.data.lastname);
                 localStorage.setItem("email", res.data.email);
 
-                setIsLoggedIn(true); // Update authentication state
+                setIsLoggedIn(true);
                 navigate("/dashboard"); // Redirect to dashboard
+            } else {
+                setErrorMessage("Invalid email or password.");
             }
         } catch (error) {
-            setErrorMessage("Login failed! Check your credentials.");
+            setErrorMessage(error.response?.data?.error || "Server unreachable. Check your connection.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -62,19 +81,51 @@ const Login = ({ setIsLoggedIn }) => {
                         margin="normal"
                         label="Password"
                         variant="outlined"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        }}
                     />
-                    {errorMessage && <Typography color="error">{errorMessage}</Typography>}
-                    <Button type="submit" fullWidth variant="contained" color="success" sx={{ mt: 2 }}>
-                        Login
+                    {errorMessage && (
+                        <Typography color="error" sx={{ mt: 1 }}>
+                            {errorMessage}
+                        </Typography>
+                    )}
+                    <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        color="success"
+                        sx={{ mt: 2 }}
+                        disabled={loading}
+                    >
+                        {loading ? "Logging in..." : "Login"}
                     </Button>
-                    <Button fullWidth variant="text" color="primary" sx={{ mt: 2 }} onClick={() => navigate("/reset-password")}>
+                    <Button
+                        fullWidth
+                        variant="text"
+                        color="primary"
+                        sx={{ mt: 2 }}
+                        onClick={() => navigate("/reset-password")}
+                    >
                         Forgot Password?
                     </Button>
-                    <Button fullWidth variant="outlined" color="primary" sx={{ mt: 2 }} onClick={() => navigate("/signup")}>
+                    <Button
+                        fullWidth
+                        variant="outlined"
+                        color="secondary"
+                        sx={{ mt: 2 }}
+                        onClick={() => navigate("/signup")}
+                    >
                         Don't have an account? Sign up
                     </Button>
                 </form>

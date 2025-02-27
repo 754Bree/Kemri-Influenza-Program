@@ -3,12 +3,14 @@ import mysql.connector
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 
-hashed_password = bcrypt.generate_password_hash("your_password").decode('utf-8')
-print(hashed_password)  # Store this in your database
-
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
-CORS(app)  # Enable CORS to allow frontend requests
+CORS(app, resources={r"/*": {"origins": ["http://localhost:3000"]}}, supports_credentials=True)  # Enable CORS to allow frontend requests
+
+# Hash a password
+password = "brianaodhiambo"
+hashed_password = bcrypt.generate_password_hash("brianaodhiambo").decode('utf-8')
+print("Hashed Password:", hashed_password)
 
 # Database connection
 def get_db_connection():
@@ -18,6 +20,40 @@ def get_db_connection():
         password="root",
         database="flaskreactifp"
     )
+@app.route('/signup', methods=['POST'])  # FIXED: Correctly use "POST" inside quotes
+def register_user():
+    data = request.json
+    firstname = data.get("firstname")
+    lastname = data.get("lastname")
+    username = data.get("username")
+    email = data.get("email")
+    password = data.get("password")
+    confirm_password = data.get("confirmPassword")
+
+    if not all([firstname, lastname, username, email, password, confirm_password]):
+        return jsonify({"success": False, "error": "All fields are required"}), 400
+
+    if password != confirm_password:
+        return jsonify({"success": False, "error": "Passwords do not match"}), 400
+
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "INSERT INTO usercredentials (firstname, lastname, username, email, password) VALUES (%s, %s, %s, %s, %s)",
+            (firstname, lastname, username, email, hashed_password)
+        )
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({"success": True, "message": "User registered successfully"}), 201
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # User login endpoint
 @app.route('/login', methods=['POST'])
@@ -38,7 +74,7 @@ def login():
 
         print(f"Fetched user: {user}")  # Debugging
 
-        if user and bcrypt.check_password_hash(user['password'], password):
+        if user and bcrypt.check_password_hash(user['hashedpassword'], password):
             print("Password matched!")  # Debugging
             return jsonify({
                 "message": "Login successful",
@@ -55,3 +91,7 @@ def login():
     except Exception as e:
         print(f"Error: {str(e)}")  # Debugging
         return jsonify({"error": str(e)}), 500
+
+
+if __name__=="__main__":
+    app.run(debug=True)

@@ -1,61 +1,42 @@
-import React from "react";
-import { AppBar, Toolbar, Typography, Box, Container, Button } from "@mui/material";
-import { Link } from "react-router-dom";
+import React, { useContext } from "react";
+import { AppBar, Toolbar, Typography, Button, IconButton } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { DarkMode, LightMode } from "@mui/icons-material";
+import { ThemeContext } from "../App"; // Now ThemeContext is properly imported
+import logo from "../Assets/KEMRI-Logo.jpg";
 
+const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
+    const navigate = useNavigate();
+    const { darkMode, setDarkMode } = useContext(ThemeContext); // Access dark mode state
 
-const Navbar = ({ isLoggedIn, questionnaireSN }) => {
-    const currentDate = new Date().toLocaleDateString(); // Get current date
+    const handleLogout = () => {
+        localStorage.clear();
+        setIsLoggedIn(false);
+        navigate("/login");
+    };
 
     return (
-        <AppBar position="static" color="primary">
+        <AppBar position="static">
             <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-                {/* App Name / Logo */}
-                <Typography variant="h6">KEMRI-CGHR : Influenza Program</Typography>
+                {/* App Name / Title */}
+                <img src={logo} alt="KEMRI Logo" style={{ height: 40, marginRight: 10 }} />
+                <Typography variant="h6" sx={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+                    KEMRI-CGHR : Influenza Program
+                </Typography>
 
-                {/* Show only when user is logged in */}
-                {isLoggedIn && (
-                    <Container
-                        sx={{
-                            display: "flex",
-                            gap: 2,
-                            backgroundColor: "white",
-                            padding: 1,
-                            borderRadius: 2,
-                        }}
-                    >
-                        {/* Questionnaire Serial Number */}
-                        <Box
-                            sx={{
-                                padding: "8px 16px",
-                                backgroundColor: "#f5f5f5",
-                                borderRadius: "8px",
-                                border: "1px solid gray",
-                            }}
-                        >
-                            <Typography variant="body1">
-                                QSN: {questionnaireSN}
-                            </Typography>
-                        </Box>
+                <div>
+                    {/* Dark Mode Toggle */}
+                    <IconButton onClick={() => setDarkMode(!darkMode)} color="warning">
+                        {darkMode ? <LightMode /> : <DarkMode />}
+                    </IconButton>
 
-                        {/* Current Date */}
-                        <Box
-                            sx={{
-                                padding: "8px 16px",
-                                backgroundColor: "#f5f5f5",
-                                borderRadius: "8px",
-                                border: "1px solid gray",
-                            }}
-                        >
-                            <Typography variant="body1">
-                                Date: {currentDate}
-                            </Typography>
-                            <Button color="inherit" component={ Link } to="/questionnaire">
-                                Questionnaire
-                            </Button>
-                        </Box>
-                    </Container>
-                    
-                )}
+                    {/* Show logout button if logged in */}
+                    {isLoggedIn && (
+                        <Button color="#b8b8ff" onClick={handleLogout}>
+                            Logout
+                        </Button>
+                    )}
+                </div>
             </Toolbar>
         </AppBar>
     );
