@@ -1,24 +1,38 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Typography, Button, Container, RadioGroup, FormControlLabel, Radio, Box } from "@mui/material";
+import { Typography, Button, Container, RadioGroup, FormControlLabel, Radio, Box, FormHelperText } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useFormContext } from "../context/FormContext";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+
+// Yup schema validation
+const schema = yup.object().shape({
+    financialSupport: yup.string().required("Please select an option"),
+});
 
 const QuestionnaireForm4 = () => {
-    const { control, watch } = useForm();
     const navigate = useNavigate();
+    const { formData, updateFormData } = useFormContext(); // Use context first
 
-    // Watching the value of "olderSiblings" and "pocketMoney" for conditional questions
+    const { control, handleSubmit, watch, formState: { errors } } = useForm({
+        defaultValues: formData, // Now formData is properly used
+        resolver: yupResolver(schema), // Validation applied
+    });
+
+    // Watching values for conditional rendering
     const hasOlderSiblings = watch("olderSiblings", "no");
     const receivesPocketMoney = watch("pocketMoney", "no");
-    //const  guardianVisits = watch("")
+    const guardianVisits = watch("guardianVisits", "no");
 
     return (
         <Container>
             <Box sx={{ maxWidth: 500, mx: "auto", mt: 6, p: 3, border: "1px solid gray", borderRadius: 2, boxShadow: "0 2px 3px blue" }}>
-                <Typography variant="h5" mt={3} >
+                <Typography variant="h5" mt={3}>
                     General Demographic Data
                 </Typography>
-                <hr></hr>
+                <hr />
+
                 <Typography variant="h6" mt={3}>1. Do you have older brothers and sisters?</Typography>
                 <Controller
                     name="olderSiblings"
@@ -83,18 +97,26 @@ const QuestionnaireForm4 = () => {
                 <Controller
                     name="financialSupport"
                     control={control}
-                    defaultValue=""
+                    defaultValue={formData.financialSupport || ""}
                     render={({ field }) => (
-                        <RadioGroup {...field}>
-                            <FormControlLabel value="Relatives" control={<Radio />} label="Relatives" />
-                            <FormControlLabel value="Boyfriend" control={<Radio />} label="Boyfriend" />
-                            <FormControlLabel value="Grandparents" control={<Radio />} label="Grandparents" />
-                            <FormControlLabel value="Other friends" control={<Radio />} label="Other friends" />
-                        </RadioGroup>
+                        <>
+                            <RadioGroup
+                                {...field}
+                                onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                    updateFormData({ ...formData, financialSupport: e.target.value });
+                                }}
+                            >
+                                <FormControlLabel value="Relatives" control={<Radio />} label="Relatives" />
+                                <FormControlLabel value="Boyfriend" control={<Radio />} label="Boyfriend" />
+                                <FormControlLabel value="Grandparents" control={<Radio />} label="Grandparents" />
+                                <FormControlLabel value="Other friends" control={<Radio />} label="Other friends" />
+                            </RadioGroup>
+                            {errors.financialSupport && <FormHelperText error>{errors.financialSupport.message}</FormHelperText>}
+                        </>
                     )}
                 />
 
-                
                 <Typography variant="h6" mt={3}>4. Does your guardian always visit you during visiting days? (For boarding students)</Typography>
                 <Controller
                     name="guardianVisits"
@@ -108,8 +130,7 @@ const QuestionnaireForm4 = () => {
                     )}
                 />
 
-                {/* Conditionally render the next question if the answer is "No" */}
-                {watch("guardianVisits") === "no" && (
+                {guardianVisits === "no" && (
                     <>
                         <Typography variant="h6" mt={3}>4b. If no, who else visits you in school?</Typography>
                         <Controller
@@ -129,21 +150,23 @@ const QuestionnaireForm4 = () => {
                     </>
                 )}
 
-
-                {/* Navigation Button */}
+                {/* Navigation Buttons */}
                 <Button
                     type="button"
                     variant="contained"
                     color="primary"
                     fullWidth
                     sx={{ mt: 3 }}
-                    onClick={() => navigate("/questionnaire-5")}
+                    onClick={() => {
+                        updateFormData({ ...formData, financialSupport: watch("financialSupport") });
+                        navigate("/questionnaire-5");
+                    }}
                 >
                     Next
                 </Button>
-                
+
                 <Button
-                    type="submit"
+                    type="button"
                     variant="contained"
                     color="warning"
                     fullWidth

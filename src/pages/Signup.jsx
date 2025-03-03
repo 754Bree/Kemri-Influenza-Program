@@ -1,51 +1,56 @@
 import React, { useState } from "react";
 import { TextField, Button, Container, Typography, Box, IconButton, InputAdornment } from "@mui/material";
-import axios from "axios"; // Import axios for API requests
-import { useNavigate } from "react-router-dom";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
-    const [firstname, setFirstname] = useState('');
-    const [lastname, setLastname] = useState('');
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+    const [formData, setFormData] = useState({
+        firstname: "",
+        lastname: "",
+        username: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+    });
     const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false); // Loading state
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const togglePasswordVisibility = () => {
         setShowPassword((prev) => !prev);
     };
 
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
     const handleSignup = async (e) => {
         e.preventDefault();
-        if (password !== confirmPassword) {
+
+        if (formData.password !== formData.confirmPassword) {
             alert("Passwords do not match!");
             return;
         }
 
         setLoading(true);
+
         try {
-            const response = await axios.post("http://127.0.0.1:5000/api/register", {
-                firstname,
-                lastname,
-                username,
-                email,
-                password
+            const response = await axios.post("http://127.0.0.1:5000/signup", formData, {
+                headers: { "Content-Type": "application/json" },
             });
 
             if (response.data.success) {
                 alert("Signup successful! Redirecting to login...");
                 navigate("/login");
             } else {
-                alert(response.data.message);
+                alert(response.data.error);
             }
         } catch (error) {
             console.error("Signup error:", error);
-            alert("An error occurred. Please try again.");
+            alert(error.response?.data?.error || "An error occurred. Please try again.");
         }
+
         setLoading(false);
     };
 
@@ -56,60 +61,40 @@ const Signup = () => {
                     Signup
                 </Typography>
                 <form onSubmit={handleSignup}>
+                    <TextField fullWidth margin="normal" label="First Name" name="firstname" value={formData.firstname} onChange={handleChange} required />
+                    <TextField fullWidth margin="normal" label="Last Name" name="lastname" value={formData.lastname} onChange={handleChange} required />
+                    <TextField fullWidth margin="normal" label="Username" name="username" value={formData.username} onChange={handleChange} required />
+                    <TextField fullWidth margin="normal" label="Email" name="email" type="email" value={formData.email} onChange={handleChange} required />
                     <TextField
-                        fullWidth margin="normal" label="First Name" variant="outlined"
-                        type="text" value={firstname} onChange={(e) => setFirstname(e.target.value)} required
-                    />
-                    <TextField
-                        fullWidth margin="normal" label="Last Name" variant="outlined"
-                        type="text" value={lastname} onChange={(e) => setLastname(e.target.value)} required
-                    />
-                    <TextField
-                        fullWidth margin="normal" label="Username" variant="outlined"
-                        type="text" value={username} onChange={(e) => setUsername(e.target.value)} required
-                    />
-                    <TextField
-                        fullWidth margin="normal" label="Email" variant="outlined"
-                        type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
-                    />
-                    <TextField
-                        fullWidth margin="normal" label="Password" variant="outlined"
-                        type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required
+                        fullWidth margin="normal" label="Password" name="password"
+                        type={showPassword ? "text" : "password"} value={formData.password} onChange={handleChange} required
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
-                                    <IconButton onClick={togglePasswordVisibility} edge="end">
+                                    <IconButton onClick={togglePasswordVisibility}>
                                         {showPassword ? <VisibilityOff /> : <Visibility />}
                                     </IconButton>
                                 </InputAdornment>
                             ),
                         }}
                     />
-                    
                     <TextField
-                        fullWidth margin="normal" label="Confirm Password" variant="outlined"
-                        type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required
+                        fullWidth margin="normal" label="Confirm Password" name="confirmPassword"
+                        type={showPassword ? "text" : "password"} value={formData.confirmPassword} onChange={handleChange} required
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
-                                    <IconButton onClick={togglePasswordVisibility} edge="end">
+                                    <IconButton onClick={togglePasswordVisibility}>
                                         {showPassword ? <VisibilityOff /> : <Visibility />}
                                     </IconButton>
                                 </InputAdornment>
                             ),
                         }}
                     />
-
-                    <Button
-                        type="submit" fullWidth variant="contained" color="primary"
-                        sx={{ mt: 2 }} disabled={loading}
-                    >
+                    <Button type="submit" fullWidth variant="contained" color="primary" sx={{ mt: 2 }} disabled={loading}>
                         {loading ? "Signing Up..." : "Signup"}
                     </Button>
-                    <Button
-                        fullWidth variant="outlined" color="success"
-                        sx={{ mt: 2 }} onClick={() => navigate("/login")}
-                    >
+                    <Button fullWidth variant="outlined" color="success" sx={{ mt: 2 }} onClick={() => navigate("/login")}>
                         Already have an account? Login
                     </Button>
                 </form>

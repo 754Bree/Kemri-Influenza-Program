@@ -3,9 +3,17 @@ import { Box, Typography } from "@mui/material";
 
 const Footer = () => {
     return (
-        <Box sx={{ textAlign: "center", py: 2, bgcolor: "grey", mt: 4 }}>
-            <Typography variant="body2" color="Whitesmoke">
-                © {new Date().getFullYear()} KEMRI-CGHR:IFP . All rights reserved
+        <Box
+            sx={{
+                textAlign: "center",
+                py: 1.5,
+                bgcolor: "green",
+                mt: 1, // Adds whitespace above the footer
+                px: 2, // Ensures spacing on smaller screens
+            }}
+        >
+            <Typography variant="body2" color="whitesmoke">
+                © {new Date().getFullYear()} KEMRI-CGHR:IFP. All rights reserved.
             </Typography>
         </Box>
     );

@@ -1,6 +1,6 @@
 import React, { createContext, useState, useMemo } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
+import { ThemeProvider, createTheme, CssBaseline, Box } from "@mui/material";
 import Login from "./pages/Login";
 import { FormProvider } from "./context/FormContext";
 import Signup from "./pages/Signup";
@@ -38,20 +38,33 @@ function App() {
         <CssBaseline /> {/* Ensures global dark mode styles */}
         <FormProvider>
           <Router>
-            <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-            <Routes>
-              <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
-              <Route path="/dashboard" element={isLoggedIn ? <Dashboard /> : <Login setIsLoggedIn={setIsLoggedIn} />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/questionnaire" element={<QuestionnaireForm />} />
-              <Route path="/questionnaire2" element={<QuestionnaireForm2 />} />
-              <Route path="/questionnaire-3" element={<QuestionnaireForm3 />} />
-              <Route path="/questionnaire-4" element={<QuestionnaireForm4 />} />
-              <Route path="/questionnaire-5" element={<QuestionnaireForm5 />} />
-            </Routes>
-            <Footer />
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                minHeight: "100vh", // Ensures full viewport height
+              }}
+            >
+              <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+
+              {/* Content wrapper to push footer to bottom */}
+              <Box sx={{ flex: "1", display: "flex", flexDirection: "column" }}>
+                <Routes>
+                  <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+                  <Route path="/dashboard" element={isLoggedIn ? <Dashboard /> : <Login setIsLoggedIn={setIsLoggedIn} />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/questionnaire" element={<QuestionnaireForm />} />
+                  <Route path="/questionnaire2" element={<QuestionnaireForm2 />} />
+                  <Route path="/questionnaire-3" element={<QuestionnaireForm3 />} />
+                  <Route path="/questionnaire-4" element={<QuestionnaireForm4 />} />
+                  <Route path="/questionnaire-5" element={<QuestionnaireForm5 />} />
+                </Routes>
+              </Box>
+
+              <Footer />
+            </Box>
           </Router>
         </FormProvider>
       </ThemeProvider>
