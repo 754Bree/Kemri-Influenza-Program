@@ -5,9 +5,15 @@ import jwt
 import datetime
 import mysql.connector
 
+
+
+
+
 app = Flask(__name__)
+app.config['SECRET_KEY'] = "SECRETKEY"
 bcrypt = Bcrypt(app)
 CORS(app, supports_credentials=True)  # Enable CORS to allow frontend requests
+
 
 # Database connection function
 def get_db_connection():
@@ -18,7 +24,16 @@ def get_db_connection():
         database="flaskreactifp"
     )
 
+
+#DATABASE RESPONSE SAVING
+#--------------------=====
+
+
+
+
+
 # SIGNUP API
+#============
 @app.route('/signup', methods=['POST'])
 def register_user():
     try:
@@ -48,7 +63,6 @@ def register_user():
         conn = get_db_connection()
         cursor = conn.cursor()
         print("Connected to MySQL")  # Debug Log
-
         # Insert user data
         cursor.execute(
     "INSERT INTO usercredentials (firstname, lastname, username, email, password, hashedpassword) VALUES (%s, %s, %s, %s, %s, %s)",
@@ -92,9 +106,6 @@ def get_questionnaire_sn():
         return jsonify({"QsnSerialNumber": None})  # If no data is found
 
 # User login endpoint
-# Ensure SECRET_KEY is set
-app.config['SECRET_KEY'] = "SECRETKEY"
-
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
@@ -106,6 +117,9 @@ def login():
 
     print(f"Received login request: Email: {email}")
 
+    conn = None
+    cursor = None
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -113,13 +127,23 @@ def login():
         cursor.execute("SELECT * FROM usercredentials WHERE email = %s", (email,))
         user = cursor.fetchone()
 
-        cursor.close()
-        conn.close()
+        if not user:
+            print("User not found!")
+            return jsonify({"error": "Invalid email or password"}), 401
 
-        if user and bcrypt.check_password_hash(user['hashedpassword'], password):
-            print("Password matched!")
+        stored_hash = user["hashedpassword"]
+        print(f"Stored Hash: {stored_hash}")
+        print(f"Entered Password: {password}")
 
-            # Generate JWT token with string userID
+        # Use Flask-Bcrypt's check_password_hash()
+        if not bcrypt.check_password_hash(stored_hash, password):
+            print("Password Mismatch!")
+            return jsonify({"error": "Invalid email or password"}), 401
+
+        print("Password Matched!")
+
+        # Generate JWT token
+        try:
             token = jwt.encode(
                 {
                     "userID": str(user["userID"]),  # Ensure userID is a string
@@ -128,30 +152,35 @@ def login():
                 app.config['SECRET_KEY'],
                 algorithm="HS256"
             )
+            print(f"Generated Token: {token}")
+        except Exception as jwt_error:
+            print(f"JWT Error: {str(jwt_error)}")
+            return jsonify({"error": "Token generation failed"}), 500
 
-            response = jsonify({
-                "message": "Login successful",
-                "userID": user["userID"],
-                "eSN": user["eSN"],
-                "firstname": user["firstname"],
-                "lastname": user["lastname"],
-                "email": user["email"],
-                "token": token
-            })
+        response = jsonify({
+            "message": "Login successful",
+            "userID": user["userID"],
+            "eSN": user["eSN"],
+            "firstname": user["firstname"],
+            "lastname": user["lastname"],
+            "email": user["email"],
+            "token": token
+        })
 
-            response.headers.add("Access-Control-Allow-Origin", "http://localhost:3000")
-            response.headers.add("Access-Control-Allow-Credentials", "true")
+        response.headers.add("Access-Control-Allow-Origin", "http://localhost:3000")
+        response.headers.add("Access-Control-Allow-Credentials", "true")
 
-            return response, 200
-
-        else:
-            print("Invalid credentials")
-            return jsonify({"error": "Invalid email or password"}), 401
+        return response, 200
 
     except Exception as e:
         print(f"Error in /login: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 if __name__=="__main__":

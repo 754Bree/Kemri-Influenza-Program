@@ -6,7 +6,7 @@ const Footer = () => {
         <Box
             sx={{
                 textAlign: "center",
-                py: 1.5,
+                py: 2,
                 bgcolor: "green",
                 mt: 1, // Adds whitespace above the footer
                 px: 2, // Ensures spacing on smaller screens
