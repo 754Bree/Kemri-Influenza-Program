@@ -27,10 +27,68 @@ def get_db_connection():
 
 #DATABASE RESPONSE SAVING
 #--------------------=====
+@app.route('/api/submit_questionnaire', methods=['POST'])
+def submit_response():
+    try:
+
+        #Sociodemographics
+        #==================
+        data = request.json
+        questionnaireSN = data.get("questionnaireSN")
+        dateCollected = data.get("dateCollected")
+        age = data.get("age")
+        stayWith =  data.get("stayWith")
+        religion = data.get("religion")
+        familySize = data.get("familySize")
+        guardianOccupation = data.get("guardianOccupation")
+        guardianEducation = data.get("guardianEducation")
+        financialSupport = data.get("financialSupport")
+        pocketMoneyAdequacy = data.get("pocketMoneyAdequacy")
+        olderSiblings = data.get("olderSiblings")
+        pocketMoney = data.get("pocketMoney")
+        guardianVisits = data.get("guardianVisits")
+        
+        # HealthDemographics
+        #======================
+        reproductiveHealthAccess = data.get("reproductiveHealthAccess")
+        educators = ",".join(data.get("educators", []))  # Convert array to string
+        topics = ",".join(data.get("topics", []))  # Convert array to string
+        infoAdequacy = data.get("infoAdequacy")
 
 
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({"error": "Database connection failed"}), 500
+        
+        cursor = conn.cursor()
 
+        #Insert into Sociodemographics table
+        sql_sociodemographics = """
+        INSERT INTO sociodemographics
+        (QsnSerialNumber, datecollected, age, stayWith, religion, familymembers, guardianOccupation, guardianAcademicLevel, olderSiblings, siblingsRelationships, pocketMoney, pocketMoneyAdequacy, otherfinancialSupportsources, guardianVisits, otherVisitors)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)        
+        """
+        cursor.execute(sql_sociodemographics, (questionnaireSN, dateCollected, age, stayWith, religion, familySize, 
+                                               guardianOccupation, guardianEducation, financialSupport, pocketMoneyAdequacy, 
+                                               olderSiblings, pocketMoney, guardianVisits))
+        
+        #Insert into Health demographics table
+        sql_healthdemographics = """
+        INSERT INTO healthdemographics
+        (QsnSerialNumber, healthInfoAccess, healthEducator, healthTopics, infoAdequacy)
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        
+        cursor.execute(sql_healthdemographics, (questionnaireSN, reproductiveHealthAccess, educators, topics, infoAdequacy))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
 
+        return jsonify({"message": "Logged to Database successfully"}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # SIGNUP API
 #============

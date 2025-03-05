@@ -15,21 +15,45 @@ const QuestionnaireForm = () => {
   const [dateCollected, setDateCollected] = useState("");
 
   useEffect(() => {
-    const generatedSN = `IFP${new Date().getFullYear()}${Math.floor(
+    // Check if SN is already stored in localStorage
+    let storedSN = localStorage.getItem("questionnaireSN");
+    let storedDate = localStorage.getItem("dateCollected");
+
+    if (storedSN && storedDate) {
+      setQuestionnaireSN(storedSN);
+      setDateCollected(storedDate);
+      console.log("Loaded Existing Questionnaire Serial Number:", storedSN);
+    }
+  }, []);
+
+  const generateSerialNumber = () => {
+    return `IFP${new Date().getFullYear()}${Math.floor(
       1000 + Math.random() * 9000
     )}`;
-    const collectedDate = new Date().toISOString().split("T")[0];
-
-    setQuestionnaireSN(generatedSN);
-    setDateCollected(collectedDate);
-
-    console.log("Questionnaire Serial Number:", generatedSN);
-    console.log("Date of Data Collection:", collectedDate);
-  }, []);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    navigate("/questionnaire2", { state: { questionnaireSN, dateCollected } });
+
+    // Generate new SN on submit
+    const newSN = generateSerialNumber();
+    const collectedDate = new Date().toISOString().split("T")[0];
+
+    // Store new SN and Date in localStorage
+    localStorage.setItem("questionnaireSN", newSN);
+    localStorage.setItem("dateCollected", collectedDate);
+
+    // Update state
+    setQuestionnaireSN(newSN);
+    setDateCollected(collectedDate);
+
+    console.log("Generated New Questionnaire Serial Number:", newSN);
+    console.log("Date of Data Collection:", collectedDate);
+
+    // Navigate to next form with SN and Date
+    navigate("/questionnaire2", {
+      state: { questionnaireSN: newSN, dateCollected: collectedDate },
+    });
   };
 
   return (
@@ -40,7 +64,7 @@ const QuestionnaireForm = () => {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          minHeight: "80vh", // Ensures spacing between Navbar and Footer
+          minHeight: "80vh",
         }}
       >
         <Box
@@ -55,10 +79,8 @@ const QuestionnaireForm = () => {
           <Typography variant="h3" gutterBottom color="purple">
             Questionnaire Form
             <hr />
-        
           </Typography>
-          
-          
+
           <form onSubmit={handleSubmit}>
             <Grid container spacing={2}>
               <Grid item xs={12}>

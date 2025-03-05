@@ -49,8 +49,20 @@ const QuestionnaireForm5 = () => {
       topics,
       infoAdequacy,
     };
+
     console.log("Form Data:", formData);
-    alert("Form submitted! Check console for data.");
+
+    // Show alert and then reset form and navigate back
+    alert("✅ Form data logged successfully!");
+
+    // Reset form fields
+    setReproductiveHealthAccess("");
+    setEducators([]);
+    setTopics([]);
+    setInfoAdequacy("");
+
+    // Navigate back to questionnaire
+    navigate("/questionnaire");
   };
 
   return (
@@ -70,7 +82,7 @@ const QuestionnaireForm5 = () => {
       }}
     >
       {/* Heading */}
-      <Typography variant="h5" color="purple" gutterBottom>
+      <Typography variant="h4" color="purple" gutterBottom>
         Reproductive Health Information
         <hr />
       </Typography>
@@ -165,7 +177,6 @@ const QuestionnaireForm5 = () => {
           <FormControlLabel value="Yes" control={<Radio />} label="Yes" />
           <FormControlLabel value="No" control={<Radio />} label="No" />
         </RadioGroup>
-        
       </FormControl>
 
       {/* Navigation Buttons */}
