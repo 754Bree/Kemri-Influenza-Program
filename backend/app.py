@@ -45,6 +45,7 @@ def submit_response():
         financialSupport = data.get("financialSupport")
         pocketMoneyAdequacy = data.get("pocketMoneyAdequacy")
         olderSiblings = data.get("olderSiblings")
+        siblingsRelationships = data.get("siblingsRelationships")
         pocketMoney = data.get("pocketMoney")
         guardianVisits = data.get("guardianVisits")
         
@@ -65,12 +66,15 @@ def submit_response():
         #Insert into Sociodemographics table
         sql_sociodemographics = """
         INSERT INTO sociodemographics
-        (QsnSerialNumber, datecollected, age, stayWith, religion, familymembers, guardianOccupation, guardianAcademicLevel, olderSiblings, siblingsRelationships, pocketMoney, pocketMoneyAdequacy, otherfinancialSupportsources, guardianVisits, otherVisitors)
+        (QsnSerialNumber, datecollected, age, stayWith, religion, familymembers,
+         guardianOccupation, guardianAcademicLevel, olderSiblings, siblingsRelationships,
+          pocketMoney, pocketMoneyAdequacy, otherfinancialSupportsources, guardianVisits,
+           otherVisitors)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)        
         """
         cursor.execute(sql_sociodemographics, (questionnaireSN, dateCollected, age, stayWith, religion, familySize, 
                                                guardianOccupation, guardianEducation, financialSupport, pocketMoneyAdequacy, 
-                                               olderSiblings, pocketMoney, guardianVisits))
+                                               olderSiblings, siblingsRelationships, pocketMoney, pocketMoneyAdequacy, guardianVisits))
         
         #Insert into Health demographics table
         sql_healthdemographics = """
