@@ -6,23 +6,35 @@ import {
   Typography,
   Box,
   Grid,
+  Skeleton,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const QuestionnaireForm = () => {
   const navigate = useNavigate();
   const [questionnaireSN, setQuestionnaireSN] = useState("");
   const [dateCollected, setDateCollected] = useState("");
+  const [QsnID, setQsnID] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if SN is already stored in localStorage
-    let storedSN = localStorage.getItem("questionnaireSN");
-    let storedDate = localStorage.getItem("dateCollected");
+    // Check if questionnaire already exists in session storage
+    const storedSN = sessionStorage.getItem("questionnaireSN");
+    const storedDate = sessionStorage.getItem("dateCollected");
+    const storedQsnID = sessionStorage.getItem("QsnID");
 
-    if (storedSN && storedDate) {
+    if (storedSN && storedDate && storedQsnID) {
+      console.log("Using existing questionnaire session.");
       setQuestionnaireSN(storedSN);
       setDateCollected(storedDate);
-      console.log("Loaded Existing Questionnaire Serial Number:", storedSN);
+      setQsnID(storedQsnID);
+      setLoading(false);
+    } else {
+      console.log(
+        "No existing questionnaire found. Will generate when submitted."
+      );
+      setLoading(false);
     }
   }, []);
 
@@ -32,27 +44,15 @@ const QuestionnaireForm = () => {
     )}`;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleNext = () => {
+    console.log("Navigating to next page with data:", {
+      questionnaireSN,
+      dateCollected,
+      QsnID,
+    });
 
-    // Generate new SN on submit
-    const newSN = generateSerialNumber();
-    const collectedDate = new Date().toISOString().split("T")[0];
-
-    // Store new SN and Date in localStorage
-    localStorage.setItem("questionnaireSN", newSN);
-    localStorage.setItem("dateCollected", collectedDate);
-
-    // Update state
-    setQuestionnaireSN(newSN);
-    setDateCollected(collectedDate);
-
-    console.log("Generated New Questionnaire Serial Number:", newSN);
-    console.log("Date of Data Collection:", collectedDate);
-
-    // Navigate to next form with SN and Date
     navigate("/questionnaire2", {
-      state: { questionnaireSN: newSN, dateCollected: collectedDate },
+      state: { questionnaireSN, dateCollected, QsnID },
     });
   };
 
@@ -81,14 +81,37 @@ const QuestionnaireForm = () => {
             <hr />
           </Typography>
 
-          <form onSubmit={handleSubmit}>
+          {loading ? (
+            <>
+              <Skeleton variant="text" width="80%" height={40} />
+              <Skeleton variant="text" width="60%" height={30} />
+              <Skeleton
+                variant="rectangular"
+                width="100%"
+                height={50}
+                sx={{ mt: 2 }}
+              />
+              <Skeleton
+                variant="rectangular"
+                width="100%"
+                height={50}
+                sx={{ mt: 2 }}
+              />
+              <Skeleton
+                variant="rectangular"
+                width="50%"
+                height={40}
+                sx={{ mt: 3, mx: "auto" }}
+              />
+            </>
+          ) : (
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Questionnaire Serial Number"
                   variant="outlined"
-                  value={questionnaireSN}
+                  value={questionnaireSN || "Generated at submission"}
                   disabled
                 />
               </Grid>
@@ -105,17 +128,17 @@ const QuestionnaireForm = () => {
               </Grid>
               <Grid item xs={12}>
                 <Button
-                  type="submit"
                   size="large"
                   variant="contained"
                   color="primary"
                   sx={{ mt: 2 }}
+                  onClick={handleNext}
                 >
                   Next
                 </Button>
               </Grid>
             </Grid>
-          </form>
+          )}
         </Box>
       </Box>
     </Container>

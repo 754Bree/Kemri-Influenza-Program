@@ -24,38 +24,18 @@ def get_db_connection():
         database="flaskreactifp"
     )
 
+#API TO SAVE QUESTIONNAIRE SERIAL NUMBER AND FETCH QUESTIONNAIRE ID
+#===================================================================
 
-#DATABASE RESPONSE SAVING
-#--------------------=====
-@app.route('/api/submit_questionnaire', methods=['POST'])
-def submit_response():
+@app.route('/api/create_questionnaire', methods=['POST'])
+def create_questionnaire():
     try:
+        data = request.get_json()
+        questionnaireSN = data.get('questionnaireSN')
+        dateCollected = data.get('dateCollected')
 
-        #Sociodemographics
-        #==================
-        data = request.json
-        questionnaireSN = data.get("questionnaireSN")
-        dateCollected = data.get("dateCollected")
-        age = data.get("age")
-        stayWith =  data.get("stayWith")
-        religion = data.get("religion")
-        familySize = data.get("familySize")
-        guardianOccupation = data.get("guardianOccupation")
-        guardianEducation = data.get("guardianEducation")
-        financialSupport = data.get("financialSupport")
-        pocketMoneyAdequacy = data.get("pocketMoneyAdequacy")
-        olderSiblings = data.get("olderSiblings")
-        siblingsRelationships = data.get("siblingsRelationships")
-        pocketMoney = data.get("pocketMoney")
-        guardianVisits = data.get("guardianVisits")
-        
-        # HealthDemographics
-        #======================
-        reproductiveHealthAccess = data.get("reproductiveHealthAccess")
-        educators = ",".join(data.get("educators", []))  # Convert array to string
-        topics = ",".join(data.get("topics", []))  # Convert array to string
-        infoAdequacy = data.get("infoAdequacy")
-
+        if not questionnaireSN or not dateCollected:
+            return jsonify({"error": "Missing fields"}), 400
 
         conn = get_db_connection()
         if conn is None:
@@ -63,33 +43,102 @@ def submit_response():
         
         cursor = conn.cursor()
 
-        #Insert into Sociodemographics table
+        sql = "INSERT INTO sociodemographics (questionnaireSN, dateCollected) VALUES (%s, %s)"
+        cursor.execute(sql, (questionnaireSN, dateCollected))
+        conn.commit()
+
+        QsnID = cursor.lastrowid
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"QsnID": QsnID}), 201
+
+    except Exception as e:
+        print("Flask Error:", str(e))
+        return jsonify({"error": "Server error", "details": str(e)}), 500
+
+@app.route('/api/submit_questionnaire', methods=['POST'])
+def submit_response():
+    try:
+        data = request.json
+
+        # Sociodemographics Fields
+        questionnaireSN = data.get("questionnaireSN")
+        dateCollected = data.get("dateCollected")
+        age = data.get("age")
+        stayWith = data.get("stayWith")
+        religion = data.get("religion")
+        familySize = data.get("familySize")
+        guardianOccupation = data.get("guardianOccupation")
+        guardianEducation = data.get("guardianEducation")
+        financialSupport = data.get("financialSupport")
+        pocketMoneyAdequacy = data.get("pocketMoneyAdequacy")
+        olderSiblings = data.get("olderSiblings")
+        siblingsRelationships = data.get("siblingsRelationships", "")  # Default to empty string
+        pocketMoney = data.get("pocketMoney")
+        guardianVisits = data.get("guardianVisits")
+
+        # HealthDemographics Fields
+        reproductiveHealthAccess = data.get("reproductiveHealthAccess", "No")  # Default No
+        educators = ",".join(data.get("educators", ["n/a"]))  # Default to "n/a"
+        topics = ",".join(data.get("topics", ["n/a"]))  # Default to "n/a"
+        infoAdequacy = data.get("infoAdequacy", "n/a")  # Default to "n/a"
+
+        # Validate Required Fields
+        if not (questionnaireSN and dateCollected ):
+            return jsonify({"error": "Missing required sociodemographics fields"}), 400
+
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({"error": "Database connection failed"}), 500
+
+        cursor = conn.cursor()
+
+        # Check if questionnaireSN already exists to prevent duplicates
+        cursor.execute("SELECT QsnID FROM sociodemographics WHERE questionnaireSN = %s", (questionnaireSN,))
+        existing_entry = cursor.fetchone()
+
+        if existing_entry:
+            return jsonify({"error": "QuestionnaireSN already exists"}), 400
+
+        # Insert into Sociodemographics table
         sql_sociodemographics = """
         INSERT INTO sociodemographics
-        (QsnSerialNumber, datecollected, age, stayWith, religion, familymembers,
-         guardianOccupation, guardianAcademicLevel, olderSiblings, siblingsRelationships,
-          pocketMoney, pocketMoneyAdequacy, otherfinancialSupportsources, guardianVisits,
-           otherVisitors)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)        
+        (questionnaireSN, dateCollected, age, stayWith, religion, familySize, 
+        guardianOccupation, guardianEducation, financialSupport, pocketMoneyAdequacy, 
+        olderSiblings, siblingsRelationships, pocketMoney, guardianVisits)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)        
         """
         cursor.execute(sql_sociodemographics, (questionnaireSN, dateCollected, age, stayWith, religion, familySize, 
                                                guardianOccupation, guardianEducation, financialSupport, pocketMoneyAdequacy, 
-                                               olderSiblings, siblingsRelationships, pocketMoney, pocketMoneyAdequacy, guardianVisits))
-        
-        #Insert into Health demographics table
+                                               olderSiblings, siblingsRelationships, pocketMoney, guardianVisits))
+
+        # Get the newly inserted QsnID
+        cursor.execute("SELECT QsnID FROM sociodemographics WHERE questionnaireSN = %s", (questionnaireSN,))
+        result = cursor.fetchone()
+        if result:
+            QsnID = result[0]
+        else:
+            return jsonify({"error": "Failed to retrieve QsnID"}), 500
+
+        # Insert into HealthDemographics table
         sql_healthdemographics = """
         INSERT INTO healthdemographics
-        (QsnSerialNumber, healthInfoAccess, healthEducator, healthTopics, infoAdequacy)
-        VALUES (%s, %s, %s, %s, %s)
+        (QsnID, questionnaireSN, healthInfoAccess, healthEducators, healthTopics, infoAdequacy)
+        VALUES (%s, %s, %s, %s, %s, %s)
         """
-        
-        cursor.execute(sql_healthdemographics, (questionnaireSN, reproductiveHealthAccess, educators, topics, infoAdequacy))
-        
+        cursor.execute(sql_healthdemographics, (QsnID, questionnaireSN, reproductiveHealthAccess, educators, topics, infoAdequacy))
+
         conn.commit()
         cursor.close()
         conn.close()
 
         return jsonify({"message": "Logged to Database successfully"}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
