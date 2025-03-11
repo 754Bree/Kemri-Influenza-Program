@@ -8,7 +8,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Dashboard from "./pages/Dashboard";
-import QuestionnaireForm from "./pages/QuestionnaireForm";
+import Selection from "./pages/Selection";
 import QuestionnaireForm2 from "./pages/QuestionnaireForm2";
 import QuestionnaireForm3 from "./pages/QuestionnaireForm3";
 import QuestionnaireForm4 from "./pages/QuestionnaireForm4";
@@ -55,14 +55,13 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/questionnaire" element={<QuestionnaireForm />} />
+                  <Route path="/submission" element={<Selection />} />
                   <Route path="/questionnaire2" element={<QuestionnaireForm2 />} />
                   <Route path="/questionnaire-3" element={<QuestionnaireForm3 />} />
                   <Route path="/questionnaire-4" element={<QuestionnaireForm4 />} />
                   <Route path="/questionnaire-5" element={<QuestionnaireForm5 />} />
                 </Routes>
               </Box>
-
               <Footer />
             </Box>
           </Router>

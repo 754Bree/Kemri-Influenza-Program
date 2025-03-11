@@ -1,5 +1,5 @@
 import React from "react";
-import { useForm, Controller, Form } from "react-hook-form";
+import { useForm,  } from "react-hook-form";
 import {
   Typography,
   Button,
@@ -8,7 +8,7 @@ import {
   FormControlLabel,
   Radio,
   Box,
-  FormHelperText,
+
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useFormContext } from "../context/FormContext";
@@ -67,11 +67,16 @@ const QuestionnaireForm4 = () => {
     formState: { errors },
   } = useForm({
     defaultValues: formData, // Now formData is properly used
+
     resolver: zodResolver(schema), // Validation applied
   });
 
   const submit = (data) => {
-    console.log(data);
+    console.log("General Demographic Data:", data); // ✅ Logs current form data
+    updateFormData(data);
+    
+    // Save updated data, NOT old formData
+    localStorage.setItem("General Demographic Data", JSON.stringify(data)); 
     navigate("/questionnaire-5");
     // }}
   };

@@ -41,8 +41,13 @@ const QuestionnaireForm5 = () => {
     );
   };
 
-  // Handles form submission
+  // Save form data to local storage and navigate
   const handleSubmit = () => {
+    if (!reproductiveHealthAccess) {
+      alert("Please select whether you have access to reproductive health information.");
+      return;
+    }
+
     const formData = {
       reproductiveHealthAccess,
       educators,
@@ -50,19 +55,11 @@ const QuestionnaireForm5 = () => {
       infoAdequacy,
     };
 
-    console.log("Form Data:", formData);
-
-    // Show alert and then reset form and navigate back
-    alert("✅ Form data logged successfully!");
-
-    // Reset form fields
-    setReproductiveHealthAccess("");
-    setEducators([]);
-    setTopics([]);
-    setInfoAdequacy("");
-
-    // Navigate back to questionnaire
-    navigate("/questionnaire");
+    // Save the data to local storage as JSON
+    localStorage.setItem("Reproductive Health Data", JSON.stringify(formData));
+    
+    console.log("Reproductive Health Data:", formData);
+    navigate("/submission");
   };
 
   return (
@@ -190,13 +187,13 @@ const QuestionnaireForm5 = () => {
           Back
         </Button>
         <Button
-          variant="contained"
-          color="success"
-          size="large"
-          onClick={handleSubmit}
-        >
-          Submit
-        </Button>
+            variant="contained"
+            color="primary"
+            sx={{ ml: 2 }}
+            onClick={handleSubmit}
+          >
+            Next
+          </Button>
       </Box>
     </Box>
   );

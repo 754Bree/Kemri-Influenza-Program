@@ -46,9 +46,9 @@ const Dashboard = () => {
               variant="contained"
               color="primary"
               sx={{ mt: 3 }}
-              onClick={() => navigate("/questionnaire")}
+              onClick={() => navigate("/questionnaire2")}
             >
-              Next
+              Begin
             </Button>
           </>
         )}

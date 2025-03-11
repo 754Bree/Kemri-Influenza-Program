@@ -1,15 +1,5 @@
-import React, { useState } from "react";
-import {
-  TextField,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-  Button,
-  FormControl,
-  FormLabel,
-  Typography,
-  Box,
-} from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {  TextField,RadioGroup,FormControlLabel, Radio, Button, FormControl, FormLabel,Typography,Box,} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const QuestionnaireForm2 = () => {
@@ -22,6 +12,15 @@ const QuestionnaireForm2 = () => {
   });
   const [errors, setErrors] = useState({});
 
+  // Load saved data from localStorage when the component mounts
+  useEffect(() => {
+    const savedData = localStorage.getItem("formData");
+    if (savedData) {
+      setFormData(JSON.parse(savedData));
+    }
+  }, []);
+
+  // Validation function
   const validate = () => {
     let tempErrors = {};
     tempErrors.age =
@@ -38,13 +37,16 @@ const QuestionnaireForm2 = () => {
     return Object.values(tempErrors).every((x) => x === "");
   };
 
+  // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Handle form submission
   const handleSubmit = () => {
     if (validate()) {
-      console.log("Form Data:", formData); // ✅ Logs data to console
+      console.log("Individual Demographic Data:", formData); 
+      localStorage.setItem("Individual Demographic Data", JSON.stringify(formData));
       navigate("/questionnaire-3");
     }
   };
@@ -144,7 +146,7 @@ const QuestionnaireForm2 = () => {
           variant="contained"
           color="secondary"
           size="large"
-          onClick={() => navigate("/questionnaire")}
+          onClick={() => navigate("/dashboard")}
         >
           Back
         </Button>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
   Typography,
@@ -11,32 +11,51 @@ import {
   FormHelperText,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { useFormContext } from "../context/FormContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-// Schema Validation
+// Define validation schema with Zod
 const schema = z.object({
-  guardianOccupation: z.string().nonempty("Please select an occupation."),
-  guardianEducation: z.string().nonempty("Please select an academic level."),
+  guardianOccupation: z.string().min(1, "This field is required"),
+  guardianEducation: z.string().min(1, "This field is required"),
 });
 
 const QuestionnaireForm3 = () => {
   const navigate = useNavigate();
-  const { formData, updateFormData } = useFormContext();
-
+  const [formData, setFormData] = useState({
+    guardianOccupation: "",
+    guardianEducation: "",
+  });
+  
+  // Initialize react-hook-form
   const {
-    handleSubmit,
     control,
+    handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
-    defaultValues: formData,
     resolver: zodResolver(schema),
+    defaultValues: formData,
   });
 
-  const submit = (data) => {
-    console.log("Form Data:", data);
-    updateFormData(data);
+  // Load saved data from localStorage on mount
+  useEffect(() => {
+    const savedData = JSON.parse(localStorage.getItem("Guardian Demographic Data"));
+    if (savedData) {
+      setFormData(savedData);
+      setValue("guardianOccupation", savedData.guardianOccupation);
+      setValue("guardianEducation", savedData.guardianEducation);
+    }
+  }, [setValue]);
+
+  // Handle form submission
+  const onSubmit = (data) => {
+    console.log("Guardian Demographic Data:", data);
+
+    // Update local state and save to localStorage
+    setFormData(data);
+    localStorage.setItem("Guardian Demographic Data", JSON.stringify(data));
+
     navigate("/questionnaire-4");
   };
 
@@ -67,19 +86,17 @@ const QuestionnaireForm3 = () => {
           control={control}
           render={({ field }) => (
             <>
-              <RadioGroup {...field}>
-                {[
-                  "Farm Worker",
-                  "Employed by someone",
-                  "Self Employed",
-                  "Professional",
-                ].map((option) => (
-                  <FormControlLabel
-                    key={option}
-                    value={option}
-                    control={<Radio />}
-                    label={option}
-                  />
+              <RadioGroup
+                {...field}
+                value={field.value || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  field.onChange(value);
+                  setFormData((prev) => ({ ...prev, guardianOccupation: value }));
+                }}
+              >
+                {["Farm Worker", "Employed by someone", "Self Employed", "Professional"].map((option) => (
+                  <FormControlLabel key={option} value={option} control={<Radio />} label={option} />
                 ))}
               </RadioGroup>
               {errors.guardianOccupation && (
@@ -100,14 +117,17 @@ const QuestionnaireForm3 = () => {
           control={control}
           render={({ field }) => (
             <>
-              <RadioGroup {...field}>
+              <RadioGroup
+                {...field}
+                value={field.value || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  field.onChange(value);
+                  setFormData((prev) => ({ ...prev, guardianEducation: value }));
+                }}
+              >
                 {["None", "Primary", "Secondary", "Tertiary"].map((option) => (
-                  <FormControlLabel
-                    key={option}
-                    value={option}
-                    control={<Radio />}
-                    label={option}
-                  />
+                  <FormControlLabel key={option} value={option} control={<Radio />} label={option} />
                 ))}
               </RadioGroup>
               {errors.guardianEducation && (
@@ -123,20 +143,10 @@ const QuestionnaireForm3 = () => {
 
         {/* Navigation Buttons */}
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="large"
-            onClick={() => navigate("/questionnaire2")}
-          >
+          <Button variant="contained" color="secondary" size="large" onClick={() => navigate("/questionnaire2")}>
             Back
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            onClick={handleSubmit(submit)}
-          >
+          <Button variant="contained" color="primary" size="large" onClick={handleSubmit(onSubmit)}>
             Next
           </Button>
         </Box>
