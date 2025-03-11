@@ -43,7 +43,7 @@ const Login = ({ setIsLoggedIn }) => {
                 // Store user session
                 //localStorage.setItem("userID", res.data.userID);
                 localStorage.setItem("eSN", res.data.eSN);
-                //localStorage.setItem("firstname", res.data.firstname);
+                localStorage.setItem("firstname", res.data.firstname);
                 //localStorage.setItem("lastname", res.data.lastname);
                 //localStorage.setItem("email", res.data.email);
 
@@ -60,7 +60,7 @@ const Login = ({ setIsLoggedIn }) => {
     };
 
     return (
-        <Container maxWidth="xs">
+        <Container maxWidth="md" sx={{ width: "75%", margin: "auto" }}>
             <Box textAlign="center" mt={5} p={3} boxShadow={3} borderRadius={3}>
                 <Typography variant="h5" gutterBottom>
                     Login

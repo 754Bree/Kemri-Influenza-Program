@@ -90,7 +90,9 @@ const QuestionnaireForm4 = () => {
     <Container>
       <Box
         sx={{
-          maxWidth: 500,
+          maxWidth: "md",
+          width: "auto", 
+          margin: "auto",
           mx: "auto",
           mt: 6,
           p: 3,
@@ -100,7 +102,7 @@ const QuestionnaireForm4 = () => {
           backgroundColor: "#fff",
         }}
       >
-        <Typography variant="h5" mt={3} color="purple">
+        <Typography variant="h4" mt={3} color="purple">
           General Demographic Data
         </Typography>
         <hr />

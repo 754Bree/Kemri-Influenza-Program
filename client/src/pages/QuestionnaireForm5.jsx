@@ -65,16 +65,14 @@ const QuestionnaireForm5 = () => {
   return (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 3,
-        width: "100%",
-        maxWidth: 500,
+        maxWidth: "md",
+        width: "auto", 
+        margin: "auto",
         mx: "auto",
-        mt: 4,
-        p: 4,
-        boxShadow: 3,
+        mt: 6,
+        p: 6,
         borderRadius: 2,
+        boxShadow: 5,
         backgroundColor: "#fff",
       }}
     >

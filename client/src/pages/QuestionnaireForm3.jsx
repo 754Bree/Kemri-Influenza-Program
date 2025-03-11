@@ -63,16 +63,18 @@ const QuestionnaireForm3 = () => {
     <Container>
       <Box
         sx={{
-          maxWidth: 500,
+          maxWidth: "md",
+          width: "auto", 
+          margin: "auto",
           mx: "auto",
           mt: 6,
-          p: 4,
+          p: 6,
           borderRadius: 2,
-          boxShadow: 3,
+          boxShadow: 5,
           backgroundColor: "#fff",
         }}
       >
-        <Typography variant="h5" color="purple" gutterBottom>
+        <Typography variant="h4" color="purple" gutterBottom>
           Guardian Demographic Data
         </Typography>
         <hr />

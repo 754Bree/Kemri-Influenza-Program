@@ -68,8 +68,8 @@ const Selection = () => {
         setTimeout(() => {
           const firstInput = document.querySelector("input, textarea, select");
           if (firstInput) firstInput.focus();
-        }, 500); // Allow time for page to render
-      }, 1000);
+        }, 400); // Allow time for page to render
+      }, 800);
 
     } catch (error) {
       console.error("Error submitting data:", error);

@@ -20,7 +20,7 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
             <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
                 {/* App Name / Title */}
                 <img src={logo} alt="KEMRI Logo" style={{ height: 40, marginRight: 10 }} />
-                <Typography variant="h6" sx={{ cursor: "pointer" }} onClick={() => navigate("/questionnaire2")}>
+                <Typography variant="h6" sx={{ cursor: "pointer" }} >
                 Questionnaire for girs aged 15 to 19
                 </Typography>
 
