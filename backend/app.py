@@ -4,7 +4,8 @@ from flask_cors import CORS
 import jwt
 import datetime
 import mysql.connector
-from admin.routes import admin
+from admin.routes import admin_bp 
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 app = Flask(__name__)
@@ -20,28 +21,11 @@ def get_db_connection():
         user="root",
         password="root",
         database="flaskreactifp"
-    )
-
-
-    
+    )    
 #=======================
 #Admin API'S
 #=======================
-# Employee API
-@app.route('/api/employees', methods=['GET'])
-def get_employees():
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT eSN, firstname, lastname, username, email, telephone, created_at FROM usercredentials')
-        employees = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify(employees)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
+# Ensure the admin user exists
 
 #===================================================================
 
@@ -272,7 +256,7 @@ def login():
         if conn:
             conn.close()
 
-app.register_blueprint(admin, url_prefix='/admin')
+app.register_blueprint(admin_bp, url_prefix="/admin")
 
 
 if __name__=="__main__":

@@ -13,6 +13,13 @@ import QuestionnaireForm2 from "./pages/QuestionnaireForm2";
 import QuestionnaireForm3 from "./pages/QuestionnaireForm3";
 import QuestionnaireForm4 from "./pages/QuestionnaireForm4";
 import QuestionnaireForm5 from "./pages/QuestionnaireForm5";
+import AdminLogin from "./admin/AdminLogin";
+import AdminDashboard from "./admin/AdminDashboard";
+import AdminUsers from "./admin/UserManagement";
+
+
+
+
 
 // Create Theme Context
 export const ThemeContext = createContext();
@@ -60,6 +67,9 @@ function App() {
                   <Route path="/questionnaire-3" element={<QuestionnaireForm3 />} />
                   <Route path="/questionnaire-4" element={<QuestionnaireForm4 />} />
                   <Route path="/questionnaire-5" element={<QuestionnaireForm5 />} />
+                  <Route path="/admin" element={<AdminLogin />} />
+                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                  <Route path="/admin/users" element={<AdminUsers />} />          
                 </Routes>
               </Box>
               <Footer />
