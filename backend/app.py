@@ -4,7 +4,7 @@ from flask_cors import CORS
 import jwt
 import datetime
 import mysql.connector
-from admin.routes import admin_bp 
+from admin.routes import admin_bp
 from werkzeug.security import generate_password_hash, check_password_hash
 
 

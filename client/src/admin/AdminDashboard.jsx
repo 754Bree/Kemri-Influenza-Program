@@ -25,13 +25,14 @@ const AdminDashboard = () => {
         <div style={{ display: "flex" }}>
             <CssBaseline />
             <AdminSidebar />
-            <Container sx={{ flexGrow: 1, p: 3 }}>
-                <Typography variant="h4" gutterBottom>
-                    Admin Dashboard
+            <Container sx={{ flexGrow: 1, p: 5 }}>
+                <Typography variant="h2" gutterBottom>
+                 Dashboard
                 </Typography>
 
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" color="success" gutterBottom>
                     Active Users
+                    <hr />
                 </Typography>
 
                 <TableContainer component={Paper}>

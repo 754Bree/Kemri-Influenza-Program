@@ -1,11 +1,13 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
 import { Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton, Divider, Toolbar } from "@mui/material";
-import { Dashboard, People, Settings, Logout, Menu } from "@mui/icons-material";
+import { Dashboard, People, Logout, Menu } from "@mui/icons-material";
 
 const drawerWidth = 222;
 
-const AdminSidebar = ({ onNavigate }) => {
+const AdminSidebar = () => {
     const [isOpen, setIsOpen] = useState(true);
+    const navigate = useNavigate(); // Initialize navigation
 
     const toggleSidebar = () => {
         setIsOpen(!isOpen);
@@ -33,24 +35,22 @@ const AdminSidebar = ({ onNavigate }) => {
                 <Toolbar />
                 <Divider />
                 <List>
-                    <ListItem button onClick={() => onNavigate("dashboard")}>
+                    {/* Navigate to Admin Dashboard */}
+                    <ListItem button onClick={() => navigate("/admin/dashboard")}>
                         <ListItemIcon><Dashboard /></ListItemIcon>
                         <ListItemText primary="Dashboard" />
                     </ListItem>
-                    
+
                     {/* Navigate to Users Page */}
-                    <ListItem button onClick={() => onNavigate("users")}>
+                    <ListItem button onClick={() => navigate("/admin/users")}>
                         <ListItemIcon><People /></ListItemIcon>
-                        <ListItemText primary="Users" />
+                        <ListItemText primary="User Management" />
                     </ListItem>
 
-                    <ListItem button onClick={() => onNavigate("settings")}>
-                        <ListItemIcon><Settings /></ListItemIcon>
-                        <ListItemText primary="Settings" />
-                    </ListItem>
                     
+
                     <Divider />
-                    
+
                     <ListItem button onClick={() => alert("Logging out...")}>
                         <ListItemIcon><Logout /></ListItemIcon>
                         <ListItemText primary="Logout" />

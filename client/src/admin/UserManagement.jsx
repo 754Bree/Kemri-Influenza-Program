@@ -17,17 +17,25 @@ import {
     TextField,
 } from "@mui/material";
 import AdminSidebar from "./AdminSidebar";
+import bcrypt from "bcryptjs"; //
 
 const AdminUsers = () => {
     const [users, setUsers] = useState([]);
     const [open, setOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
-    const [formData, setFormData] = useState({ username: "", email: "", password: "" });
+    const [formData, setFormData] = useState({
+        username: "",
+        firstname: "",
+        lastname: "",
+        email: "",
+        password: "",
+        telephone: "",
+    });
 
     useEffect(() => {
         fetchUsers();
-        const interval = setInterval(fetchUsers, 5000); // Refresh every 5 seconds
+        const interval = setInterval(fetchUsers, 5000);
         return () => clearInterval(interval);
     }, []);
 
@@ -49,7 +57,14 @@ const AdminUsers = () => {
 
     // Open Modal for Adding a User
     const handleOpen = () => {
-        setFormData({ username: "", email: "", password: "" });
+        setFormData({
+            username: "",
+            firstname: "",
+            lastname: "",
+            email: "",
+            password: "",
+            telephone: "",
+        });
         setEditMode(false);
         setOpen(true);
     };
@@ -57,33 +72,51 @@ const AdminUsers = () => {
     // Open Modal for Editing a User
     const handleEdit = (user) => {
         setSelectedUser(user);
-        setFormData({ username: user.username, email: user.email, password: "" });
+        setFormData({
+            username: user.username,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            password: "",
+            telephone: user.telephone,
+        });
         setEditMode(true);
         setOpen(true);
     };
 
     // Create or Update User
-    const handleSubmit = async () => {
-        const url = editMode
-            ? `http://127.0.0.1:5000/admin/users/${selectedUser.userID}`
-            : "http://127.0.0.1:5000/admin/users";
-        const method = editMode ? "PUT" : "POST";
+const handleSubmit = async (event) => {
+    event.preventDefault();
 
-        try {
-            const response = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
+    // If editing, send a PUT request; otherwise, send a POST request
+    const method = editMode ? "PUT" : "POST";
+    const url = editMode
+        ? `http://127.0.0.1:5000/admin/users/${selectedUser.userID}`
+        : "http://127.0.0.1:5000/admin/usercredentials";
 
-            if (response.ok) {
-                fetchUsers();
-                setOpen(false);
-            }
-        } catch (error) {
-            console.error("Error saving user:", error);
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-    };
+
+        const result = await response.json();
+        alert(editMode ? "User updated successfully!" : "User created successfully!");
+        fetchUsers(); // Refresh the user list
+        setOpen(false); // Close the modal
+    } catch (error) {
+        console.error("Error saving user:", error);
+        alert("Failed to save user.");
+    }
+};
+
 
     // Delete User
     const handleDelete = async (userID) => {
@@ -105,12 +138,12 @@ const AdminUsers = () => {
     return (
         <div style={{ display: "flex" }}>
             <AdminSidebar />
-            <Container sx={{ flexGrow: 1, p: 3 }}>
+            <Container sx={{ flexGrow: 1, p: 5 }}>
                 <Typography variant="h4" gutterBottom>
                     User Management
                 </Typography>
 
-                <Button variant="contained" color="primary" onClick={handleOpen} sx={{ mb: 2 }}>
+                <Button variant="contained" color="success" onClick={handleOpen} sx={{ mb: 2 }}>
                     Add New User
                 </Button>
 
@@ -120,7 +153,10 @@ const AdminUsers = () => {
                             <TableRow>
                                 <TableCell>ID</TableCell>
                                 <TableCell>Username</TableCell>
+                                <TableCell>First Name</TableCell>
+                                <TableCell>Last Name</TableCell>
                                 <TableCell>Email</TableCell>
+                                <TableCell>Telephone</TableCell>
                                 <TableCell>Actions</TableCell>
                             </TableRow>
                         </TableHead>
@@ -130,7 +166,10 @@ const AdminUsers = () => {
                                     <TableRow key={user.userID}>
                                         <TableCell>{user.userID}</TableCell>
                                         <TableCell>{user.username}</TableCell>
+                                        <TableCell>{user.firstname}</TableCell>
+                                        <TableCell>{user.lastname}</TableCell>
                                         <TableCell>{user.email}</TableCell>
+                                        <TableCell>{user.telephone}</TableCell>
                                         <TableCell>
                                             <Button
                                                 variant="outlined"
@@ -152,7 +191,7 @@ const AdminUsers = () => {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} align="center">
+                                    <TableCell colSpan={7} align="center">
                                         No users found
                                     </TableCell>
                                 </TableRow>
@@ -175,6 +214,22 @@ const AdminUsers = () => {
                         />
                         <TextField
                             margin="dense"
+                            label="First Name"
+                            name="firstname"
+                            fullWidth
+                            value={formData.firstname}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            margin="dense"
+                            label="Last Name"
+                            name="lastname"
+                            fullWidth
+                            value={formData.lastname}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            margin="dense"
                             label="Email"
                             name="email"
                             fullWidth
@@ -190,10 +245,18 @@ const AdminUsers = () => {
                             value={formData.password}
                             onChange={handleChange}
                         />
+                        <TextField
+                            margin="dense"
+                            label="Telephone"
+                            name="telephone"
+                            fullWidth
+                            value={formData.telephone}
+                            onChange={handleChange}
+                        />
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => setOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSubmit} color="primary">
+                        <Button onClick={handleSubmit} color="success">
                             {editMode ? "Update" : "Create"}
                         </Button>
                     </DialogActions>
