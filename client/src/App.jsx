@@ -16,6 +16,7 @@ import QuestionnaireForm5 from "./pages/QuestionnaireForm5";
 import AdminLogin from "./admin/AdminLogin";
 import AdminDashboard from "./admin/AdminDashboard";
 import AdminUsers from "./admin/UserManagement";
+import FormStats from "./admin/FormStats";
 
 
 
@@ -69,7 +70,8 @@ function App() {
                   <Route path="/questionnaire-5" element={<QuestionnaireForm5 />} />
                   <Route path="/admin" element={<AdminLogin />} />
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                  <Route path="/admin/users" element={<AdminUsers />} />          
+                  <Route path="/admin/users" element={<AdminUsers />} /> 
+                  <Route path="/admin/statistics" element={<FormStats />} />        
                 </Routes>
               </Box>
               <Footer />

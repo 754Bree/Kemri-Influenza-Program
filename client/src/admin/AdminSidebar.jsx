@@ -46,6 +46,12 @@ const AdminSidebar = () => {
                         <ListItemIcon><People /></ListItemIcon>
                         <ListItemText primary="User Management" />
                     </ListItem>
+                    
+                    {/* Navigate to Form statistics Page */}
+                    <ListItem button onClick={() => navigate("/admin/statistics")}>
+                        <ListItemIcon><People /></ListItemIcon>
+                        <ListItemText primary="Form Statistics" />
+                    </ListItem>
 
                     
 

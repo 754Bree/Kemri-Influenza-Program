@@ -1,11 +1,13 @@
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import check_password_hash, generate_password_hash
-import jwt
+import jwt 
 import datetime
 import mysql.connector
 from flask_cors import CORS
 
+
 # Define Blueprint
+formstats_bp = Blueprint('formstats', __name__)
 admin_bp = Blueprint("admin", __name__)
 CORS(admin_bp, resources={r"/": {"origins": "*"}})  # Enable CORS for all admin routes
 
@@ -28,36 +30,46 @@ SECRET_KEY = "SECRETKEY"  # Change this to a strong secret key
 #Admin Login API
 @admin_bp.route('/login', methods=['POST'])
 def admin_login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-
-    if not username or not password:
-        return jsonify({"message": "Username and password required"}), 400
-
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({"message": "Database connection failed"}), 500
-
     try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            return jsonify({"message": "Username and password required"}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"message": "Database connection failed"}), 500
+
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT * FROM admin WHERE username = %s", (username,))
         admin = cursor.fetchone()
 
         if admin and check_password_hash(admin["password_hash"], password):
-            token = jwt.encode(
-                {"admin_id": admin["id"], "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=3)},
-                SECRET_KEY, algorithm="HS256"
-            )
+            token_payload = {
+                "admin_id": admin["id"],
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=3)
+            }
+            token = jwt.encode(token_payload, SECRET_KEY, algorithm="HS256")
+
             return jsonify({"message": "Login successful", "token": token}), 200
-        else:
-            return jsonify({"message": "Invalid credentials"}), 401
+
+        return jsonify({"message": "Invalid credentials"}), 401
+
+    except jwt.PyJWTError as jwt_error:
+        return jsonify({"message": "JWT encoding error", "error": str(jwt_error)}), 500
 
     except Exception as e:
-        return jsonify({"message": "Database error", "error": str(e)}), 500
+        return jsonify({"message": "Internal server error", "error": str(e)}), 500
+
     finally:
-        cursor.close()
-        conn.close()
+        if 'cursor' in locals() and cursor:
+            cursor.close()
+        if 'conn' in locals() and conn:
+            conn.close()
+
+
 #Get active users 
 @admin_bp.route("/active-users", methods=["GET"])
 def get_active_users():
@@ -157,3 +169,36 @@ def delete_user(userID):
     finally:
         cursor.close()
         conn.close()
+
+
+#Form Statistics
+@formstats_bp.route('/formstats', methods=['GET'])
+def get_form_stats():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    # Fetch sociodemographics data
+    cursor.execute("SELECT Age, LivingWith FROM sociodemographics")
+    sociodemographics = cursor.fetchall()
+    
+    # Fetch healthdemographics data
+    cursor.execute("SELECT ReproductiveHealthInfoAccess, AdequateInfo FROM healthdemographics")
+    healthdemographics = cursor.fetchall()
+    
+    conn.close()
+    
+    # Basic statistics
+    total_records = len(sociodemographics) + len(healthdemographics)
+    age_distribution = {entry['Age']: 0 for entry in sociodemographics}
+    for entry in sociodemographics:
+        age_distribution[entry['Age']] += 1
+    
+    health_info_access_count = sum(1 for entry in healthdemographics if entry['ReproductiveHealthInfoAccess'] == 'Yes')
+    adequate_info_count = sum(1 for entry in healthdemographics if entry['AdequateInfo'] == 'Yes')
+    
+    return jsonify({
+        "total_records": total_records,
+        "age_distribution": age_distribution,
+        "health_info_access": health_info_access_count,
+        "adequate_info": adequate_info_count
+    })

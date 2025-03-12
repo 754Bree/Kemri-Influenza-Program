@@ -5,6 +5,8 @@ import jwt
 import datetime
 import mysql.connector
 from admin.routes import admin_bp
+
+from admin.routes import formstats_bp
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -257,7 +259,7 @@ def login():
             conn.close()
 
 app.register_blueprint(admin_bp, url_prefix="/admin")
-
+app.register_blueprint(formstats_bp, url_prefix="/")
 
 if __name__=="__main__":
     app.run(debug=True)

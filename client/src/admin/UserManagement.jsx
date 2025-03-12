@@ -145,6 +145,7 @@ const handleSubmit = async (event) => {
 
                 <Button variant="contained" color="success" onClick={handleOpen} sx={{ mb: 2 }}>
                     Add New User
+                    <hr />
                 </Button>
 
                 <TableContainer component={Paper}>
