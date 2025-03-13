@@ -12,6 +12,7 @@ const Signup = () => {
         email: "",
         password: "",
         confirmPassword: "",
+        telephone: "",
     });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -65,6 +66,7 @@ const Signup = () => {
                     <TextField fullWidth margin="normal" label="Last Name" name="lastname" value={formData.lastname} onChange={handleChange} required />
                     <TextField fullWidth margin="normal" label="Username" name="username" value={formData.username} onChange={handleChange} required />
                     <TextField fullWidth margin="normal" label="Email" name="email" type="email" value={formData.email} onChange={handleChange} required />
+                    
                     <TextField
                         fullWidth margin="normal" label="Password" name="password"
                         type={showPassword ? "text" : "password"} value={formData.password} onChange={handleChange} required
@@ -90,6 +92,17 @@ const Signup = () => {
                                 </InputAdornment>
                             ),
                         }}
+                    />
+                    <TextField 
+                        fullWidth 
+                        margin="normal" 
+                        label="Telephone" 
+                        name="telephone"  // ✅ Corrected the name to match state
+                        type="tel" 
+                        placeholder="2547xxxxxxxx" 
+                        value={formData.telephone} 
+                        onChange={handleChange} 
+                        required 
                     />
                     <Button type="submit" fullWidth variant="contained" color="primary" sx={{ mt: 2 }} disabled={loading}>
                         {loading ? "Signing Up..." : "Signup"}

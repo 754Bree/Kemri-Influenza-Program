@@ -139,6 +139,7 @@ def register_user():
         email = data.get("email")
         password = data.get("password")
         confirm_password = data.get("confirmPassword")
+        telephone = data.get("telephone")
 
         # Validation Checks
         if not all([firstname, lastname, username, email, password, confirm_password]):
@@ -155,10 +156,11 @@ def register_user():
         conn = get_db_connection()
         cursor = conn.cursor()
         print("Connected to MySQL")  # Debug Log
+
         # Insert user data
         cursor.execute(
-    "INSERT INTO usercredentials (firstname, lastname, username, email, password, hashedpassword) VALUES (%s, %s, %s, %s, %s, %s)",
-    (firstname, lastname, username, email, password, hashed_password)
+    "INSERT INTO usercredentials (firstname, lastname, username, email, password, hashedpassword, telephone) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+    (firstname, lastname, username, email, password, hashed_password, telephone)
 )
 
 
@@ -211,19 +213,19 @@ def login():
         print(f"Stored Hash: {stored_hash}")
         print(f"Entered Password: {password}")
 
-        # Use Flask-Bcrypt's check_password_hash()
         if not bcrypt.check_password_hash(stored_hash, password):
             print("Password Mismatch!")
             return jsonify({"error": "Invalid email or password"}), 401
 
-        print("Password Matched!")
+        print("Authenticated!")
 
         # Generate JWT token
         try:
+            token_expiry = datetime.datetime.utcnow() + datetime.timedelta(hours=5)
             token = jwt.encode(
                 {
-                    "userID": str(user["userID"]),  # Ensure userID is a string
-                    "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=5)
+                    "userID": str(user["userID"]),
+                    "exp": token_expiry
                 },
                 app.config['SECRET_KEY'],
                 algorithm="HS256"
@@ -232,6 +234,13 @@ def login():
         except Exception as jwt_error:
             print(f"JWT Error: {str(jwt_error)}")
             return jsonify({"error": "Token generation failed"}), 500
+
+        # Update login details in the database
+        login_time = datetime.datetime.utcnow()
+        cursor.execute("""
+            UPDATE usercredentials SET last_login = %s, session_start = %s, is_active = 0 WHERE userID = %s
+        """, (login_time, login_time, user["userID"]))
+        conn.commit()
 
         response = jsonify({
             "message": "Login successful",
@@ -257,6 +266,76 @@ def login():
             cursor.close()
         if conn:
             conn.close()
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    data = request.json
+    user_id = data.get("userID")
+
+    if not user_id:
+        return jsonify({"error": "UserID is required"}), 400
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        logout_time = datetime.datetime.utcnow()
+        cursor.execute("""
+            UPDATE usercredentials SET session_end = %s, is_active = 1 WHERE userID = %s
+        """, (logout_time, user_id))
+        conn.commit()
+
+        return jsonify({"message": "Logout successful"}), 200
+
+    except Exception as e:
+        print(f"Error in /logout: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+@app.route('/check_session', methods=['POST'])
+def check_session():
+    data = request.json
+    token = data.get("token")
+
+    if not token:
+        return jsonify({"error": "Token is required"}), 400
+
+    try:
+        decoded_token = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+        user_id = decoded_token["userID"]
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT is_active FROM usercredentials WHERE userID = %s", (user_id,))
+        user = cursor.fetchone()
+
+        if not user or user["is_active"] == 1:
+            return jsonify({"error": "Session expired or user not logged in"}), 401
+
+        return jsonify({"message": "Session active"}), 200
+    
+    except jwt.ExpiredSignatureError:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE usercredentials SET is_active = 1 WHERE userID = %s", (user_id,))
+        conn.commit()
+        return jsonify({"error": "Session expired"}), 401
+    except Exception as e:
+        print(f"Error in /check_session: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
 
 app.register_blueprint(admin_bp, url_prefix="/admin")
 app.register_blueprint(formstats_bp, url_prefix="/")

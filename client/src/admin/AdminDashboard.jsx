@@ -26,8 +26,8 @@ const AdminDashboard = () => {
             <CssBaseline />
             <AdminSidebar />
             <Container sx={{ flexGrow: 1, p: 5 }}>
-                <Typography  variant="h3" gutterBottom>
-                 Dashboard
+                <Typography variant="h3" gutterBottom>
+                    Dashboard
                 </Typography>
 
                 <Typography variant="h6" color="success" gutterBottom>
@@ -40,9 +40,10 @@ const AdminDashboard = () => {
                         <TableHead>
                             <TableRow>
                                 <TableCell>ID</TableCell>
-                                <TableCell>Username</TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell>Session Duration (Seconds)</TableCell>
+                                <TableCell>First Name</TableCell>
+                                <TableCell>Last Name</TableCell>
+                                <TableCell>Email</TableCell>
+                                <TableCell>Status</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -50,23 +51,20 @@ const AdminDashboard = () => {
                                 activeUsers.map((user) => (
                                     <TableRow key={user.userID}>
                                         <TableCell>{user.userID}</TableCell>
-                                        <TableCell>{user.username}</TableCell>
+                                        <TableCell>{user.firstname}</TableCell>
+                                        <TableCell>{user.lastname}</TableCell>
+                                        <TableCell>{user.email}</TableCell>
                                         <TableCell>
-                                            {user.last_login ? (
-                                                <>
-                                                    <span style={{ color: "green", fontSize: "15px" }}>🟢</span> {new Date(user.last_login).toLocaleString()}
-                                                </>
-                                            ) : (
-                                                <span style={{ color: "darkred", fontSize: "15px" }}>🔴</span>
-                                            )}
+                                            <span style={{ fontSize: "10px", textShadow: "0px 0px 3px " }}>
+                                                {user.active_status === "green" ? "🟢" : "🔴"}
+                                            </span>
                                         </TableCell>
-                                        <TableCell>{user.session_duration ?? "0"}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} align="center">
-                                        No active users
+                                    <TableCell colSpan={5} align="center">
+                                        No users found
                                     </TableCell>
                                 </TableRow>
                             )}

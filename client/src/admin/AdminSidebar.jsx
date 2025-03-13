@@ -12,7 +12,7 @@ const AdminSidebar = () => {
     const toggleSidebar = () => {
         setIsOpen(!isOpen);
     };
-
+    
     return (
         <>
             <IconButton onClick={toggleSidebar} sx={{ margin: 2 }}>
@@ -57,7 +57,10 @@ const AdminSidebar = () => {
 
                     <Divider />
 
-                    <ListItem button onClick={() => alert("Logging out...")}>
+                    <ListItem button onClick={() => {
+                        localStorage.removeItem("authToken"); // Clear stored auth token
+                        navigate("/admin"); // Redirect to admin login page
+                    }}>
                         <ListItemIcon><Logout /></ListItemIcon>
                         <ListItemText primary="Logout" />
                     </ListItem>

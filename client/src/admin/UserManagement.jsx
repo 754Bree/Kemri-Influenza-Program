@@ -152,7 +152,7 @@ const handleSubmit = async (event) => {
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>ID</TableCell>
+                                
                                 <TableCell>Username</TableCell>
                                 <TableCell>First Name</TableCell>
                                 <TableCell>Last Name</TableCell>
@@ -165,7 +165,7 @@ const handleSubmit = async (event) => {
                             {users.length > 0 ? (
                                 users.map((user) => (
                                     <TableRow key={user.userID}>
-                                        <TableCell>{user.userID}</TableCell>
+                                        
                                         <TableCell>{user.username}</TableCell>
                                         <TableCell>{user.firstname}</TableCell>
                                         <TableCell>{user.lastname}</TableCell>

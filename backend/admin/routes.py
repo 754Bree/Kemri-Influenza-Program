@@ -79,18 +79,20 @@ def get_active_users():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Query active users
-        cursor.execute("SELECT * FROM usercredentials WHERE is_active = 1")
-        active_users = cursor.fetchall()
-        
+        # Query all users to determine their active status
+        cursor.execute("SELECT userID, firstname, lastname, email, is_active FROM usercredentials")
+        users = cursor.fetchall()
+
+        # Modify response to include an active_status field
+        for user in users:
+            user["active_status"] = "green" if user["is_active"] == 0 else "red"
+
         cursor.close()
         conn.close()
         
-        return jsonify(active_users), 200
+        return jsonify(users), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
 
 # Fetch all users
 @admin_bp.route("/users", methods=["GET"])
