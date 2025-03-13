@@ -1,18 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { Container, Typography, CircularProgress } from "@mui/material";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { Container, Typography, CircularProgress, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import AdminSidebar from "./AdminSidebar";
 
 const FormStats = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+    const [selectedColumn, setSelectedColumn] = useState("");
+    const [chartData, setChartData] = useState([]);
+    const [availableColumns, setAvailableColumns] = useState([]);
+
+    // Fixed Age groups for the Y-axis
+    const ageGroups = [15, 16, 17, 18, 19];
 
     useEffect(() => {
         fetch("http://127.0.0.1:5000/formstats")
             .then((response) => response.json())
             .then((data) => {
+                console.log("Fetched Data:", data); // Debugging API response
                 setData(data);
+                extractColumns(data);
                 setLoading(false);
             })
             .catch((error) => {
@@ -21,9 +28,61 @@ const FormStats = () => {
             });
     }, []);
 
-    if (loading) {
-        return <CircularProgress />;
-    }
+    useEffect(() => {
+        if (selectedColumn && data) {
+            generateChartData();
+        }
+    }, [selectedColumn, data]);
+
+    const extractColumns = (data) => {
+        if (!data) return;
+
+        const sociodemographicsCols = data.sociodemographics?.length > 0
+            ? Object.keys(data.sociodemographics[0])
+            : [];
+        const healthdemographicsCols = data.healthdemographics?.length > 0
+            ? Object.keys(data.healthdemographics[0])
+            : [];
+
+        const uniqueColumns = [...new Set([...sociodemographicsCols, ...healthdemographicsCols])];
+
+        console.log("Extracted Columns:", uniqueColumns); // Debugging column extraction
+
+        setAvailableColumns(uniqueColumns);
+    };
+
+    const generateChartData = () => {
+        if (!data || !selectedColumn) return;
+
+        let columnValues = {};
+        let formattedData = [];
+
+        [...(data.sociodemographics || []), ...(data.healthdemographics || [])].forEach((item) => {
+            if (item[selectedColumn]) {
+                columnValues[item[selectedColumn]] = true;
+            }
+        });
+
+        const uniqueColumnValues = Object.keys(columnValues);
+
+        ageGroups.forEach((age) => {
+            let ageData = { age };
+
+            uniqueColumnValues.forEach((value) => {
+                const count = [...(data.sociodemographics || []), ...(data.healthdemographics || [])].filter(
+                    (item) => Number(item.Age) === age && item[selectedColumn] === value
+                ).length;
+                ageData[value] = count;
+            });
+
+            formattedData.push(ageData);
+        });
+
+        setChartData(formattedData);
+    };
+
+    if (loading) return <CircularProgress />;
+    if (!data) return <Typography variant="h6" color="error">Error loading data.</Typography>;
 
     return (
         <div style={{ display: "flex" }}>
@@ -33,42 +92,47 @@ const FormStats = () => {
                     Form Statistics
                 </Typography>
 
-                {/* Bar Chart Example */}
-                <Typography variant="h6" gutterBottom>
-                    Age Distribution
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={data.age_distribution}>
-                        <XAxis dataKey="age_range" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="count" fill="#0088FE" />
-                    </BarChart>
-                </ResponsiveContainer>
+                <FormControl sx={{ minWidth: 200, marginBottom: 3 }}>
+                    <InputLabel>Select a Column</InputLabel>
+                    <Select
+                        value={selectedColumn}
+                        onChange={(e) => setSelectedColumn(e.target.value)}
+                        disabled={availableColumns.length === 0}
+                    >
+                        {availableColumns.length > 0 ? (
+                            availableColumns.map((col, index) => (
+                                <MenuItem key={index} value={col}>
+                                    {col}
+                                </MenuItem>
+                            ))
+                        ) : (
+                            <MenuItem disabled>No columns available</MenuItem>
+                        )}
+                    </Select>
+                </FormControl>
 
-                {/* Pie Chart Example */}
-                <Typography variant="h6" gutterBottom>
-                    Health Information Access
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                        <Pie
-                            data={data.health_info_access}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            outerRadius={100}
-                            fill="#8884d8"
-                            dataKey="value"
-                        >
-                            {data.health_info_access.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip />
-                    </PieChart>
-                </ResponsiveContainer>
+                {selectedColumn ? (
+                    <div>
+                        <Typography variant="h6" gutterBottom>
+                            {selectedColumn} Distribution by Age
+                        </Typography>
+                        <ResponsiveContainer width="100%" height={400}>
+                            <BarChart layout="vertical" data={chartData}>
+                                <XAxis type="number" />
+                                <YAxis dataKey="age" type="category" />
+                                <Tooltip />
+                                <Legend />
+                                {Object.keys(chartData[0] || {}).filter(key => key !== "age").map((value, idx) => (
+                                    <Bar key={idx} dataKey={value} fill={["#8884d8", "#82ca9d", "#ffc658"][idx % 3]} />
+                                ))}
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                ) : (
+                    <Typography variant="body1" color="textSecondary">
+                        Select a column to display statistics.
+                    </Typography>
+                )}
             </Container>
         </div>
     );

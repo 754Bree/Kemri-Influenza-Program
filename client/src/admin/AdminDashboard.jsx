@@ -26,12 +26,12 @@ const AdminDashboard = () => {
             <CssBaseline />
             <AdminSidebar />
             <Container sx={{ flexGrow: 1, p: 5 }}>
-                <Typography variant="h2" gutterBottom>
+                <Typography  variant="h3" gutterBottom>
                  Dashboard
                 </Typography>
 
                 <Typography variant="h6" color="success" gutterBottom>
-                    Active Users
+                    User Activity
                     <hr />
                 </Typography>
 
@@ -41,7 +41,7 @@ const AdminDashboard = () => {
                             <TableRow>
                                 <TableCell>ID</TableCell>
                                 <TableCell>Username</TableCell>
-                                <TableCell>Last Active</TableCell>
+                                <TableCell>Active</TableCell>
                                 <TableCell>Session Duration (Seconds)</TableCell>
                             </TableRow>
                         </TableHead>
@@ -52,9 +52,13 @@ const AdminDashboard = () => {
                                         <TableCell>{user.userID}</TableCell>
                                         <TableCell>{user.username}</TableCell>
                                         <TableCell>
-                                            {user.last_login
-                                                ? new Date(user.last_login).toLocaleString()
-                                                : "N/A"}
+                                            {user.last_login ? (
+                                                <>
+                                                    <span style={{ color: "green", fontSize: "15px" }}>🟢</span> {new Date(user.last_login).toLocaleString()}
+                                                </>
+                                            ) : (
+                                                <span style={{ color: "darkred", fontSize: "15px" }}>🔴</span>
+                                            )}
                                         </TableCell>
                                         <TableCell>{user.session_duration ?? "0"}</TableCell>
                                     </TableRow>

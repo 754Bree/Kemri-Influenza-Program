@@ -92,7 +92,7 @@ const handleSubmit = async (event) => {
     const method = editMode ? "PUT" : "POST";
     const url = editMode
         ? `http://127.0.0.1:5000/admin/users/${selectedUser.userID}`
-        : "http://127.0.0.1:5000/admin/usercredentials";
+        : "http://127.0.0.1:5000/admin/users";
 
     try {
         const response = await fetch(url, {
@@ -139,15 +139,15 @@ const handleSubmit = async (event) => {
         <div style={{ display: "flex" }}>
             <AdminSidebar />
             <Container sx={{ flexGrow: 1, p: 5 }}>
-                <Typography variant="h4" gutterBottom>
+                <Typography variant="h3" gutterBottom>
                     User Management
                 </Typography>
 
-                <Button variant="contained" color="success" onClick={handleOpen} sx={{ mb: 2 }}>
+                <Button variant="contained" color="success" onClick={handleOpen} sx={{ mb: 3 }}>
                     Add New User
-                    <hr />
+                
                 </Button>
-
+                        <hr />
                 <TableContainer component={Paper}>
                     <Table>
                         <TableHead>

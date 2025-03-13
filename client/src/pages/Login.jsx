@@ -60,7 +60,7 @@ const Login = ({ setIsLoggedIn }) => {
     };
 
     return (
-        <Container maxWidth="md" sx={{ width: "75%", margin: "auto" }}>
+        <Container maxWidth="md" sx={{ width: "30%", margin: "auto" }}>
             <Box textAlign="center" mt={5} p={3} boxShadow={3} borderRadius={3}>
                 <Typography variant="h5" gutterBottom>
                     Login
@@ -102,7 +102,7 @@ const Login = ({ setIsLoggedIn }) => {
                     )}
                     <Button
                         type="submit"
-                        fullWidth
+                        size="large"
                         variant="contained"
                         color="success"
                         sx={{ mt: 2 }}

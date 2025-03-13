@@ -4,6 +4,8 @@ import jwt
 import datetime
 import mysql.connector
 from flask_cors import CORS
+import json
+from mysql.connector import Error
 
 
 # Define Blueprint
@@ -114,9 +116,10 @@ def create_user():
 
     try:
         cursor = conn.cursor()
-        hashed_password = generate_password_hash(data["password"])  # Secure hashing
+        hashed_password = generate_password_hash(data["password"])
+  # Secure hashing
         query = """
-            INSERT INTO usercredentials (firstname, lastname, username, email, password_hash, telephone) 
+            INSERT INTO usercredentials (firstname, lastname, username, email, hashedpassword, telephone) 
             VALUES (%s, %s, %s, %s, %s, %s)
         """
         cursor.execute(query, (
@@ -172,33 +175,47 @@ def delete_user(userID):
 
 
 #Form Statistics
+def serialize(obj):
+    """Convert non-serializable objects to JSON-compatible formats."""
+    if isinstance(obj, datetime.datetime):
+        return obj.strftime('%Y-%m-%d %H:%M:%S')
+    elif isinstance(obj, (int, float)):  
+        return obj  # Keep numerical values unchanged
+    elif obj is None:
+        return None  # Return None instead of "N/A" for better frontend handling
+    return str(obj)  # Convert everything else to string
+
 @formstats_bp.route('/formstats', methods=['GET'])
 def get_form_stats():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    # Fetch sociodemographics data
-    cursor.execute("SELECT Age, LivingWith FROM sociodemographics")
-    sociodemographics = cursor.fetchall()
-    
-    # Fetch healthdemographics data
-    cursor.execute("SELECT ReproductiveHealthInfoAccess, AdequateInfo FROM healthdemographics")
-    healthdemographics = cursor.fetchall()
-    
-    conn.close()
-    
-    # Basic statistics
-    total_records = len(sociodemographics) + len(healthdemographics)
-    age_distribution = {entry['Age']: 0 for entry in sociodemographics}
-    for entry in sociodemographics:
-        age_distribution[entry['Age']] += 1
-    
-    health_info_access_count = sum(1 for entry in healthdemographics if entry['ReproductiveHealthInfoAccess'] == 'Yes')
-    adequate_info_count = sum(1 for entry in healthdemographics if entry['AdequateInfo'] == 'Yes')
-    
-    return jsonify({
-        "total_records": total_records,
-        "age_distribution": age_distribution,
-        "health_info_access": health_info_access_count,
-        "adequate_info": adequate_info_count
-    })
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)  # Ensure this works in your MySQL connector version
+
+        # Fetch combined sociodemographics and healthdemographics data using JOIN
+        cursor.execute("""
+            SELECT s.Age, s.StayWith, s.Religion, s.FamilySize, s.GuardianOccupation, s.GuardianEducation, 
+                   s.FinancialSupport, s.PocketMoneyAdequacy, s.OlderSiblings, s.SiblingsRelationships, 
+                   s.PocketMoney, s.GuardianVisits, s.OtherVisitors,
+                   h.HealthInfoAccess, h.HealthEducators, h.HealthTopics, h.InfoAdequacy
+            FROM sociodemographics s
+            LEFT JOIN healthdemographics h ON s.QsnID = h.QsnID
+        """)
+        combined_data = cursor.fetchall()
+        
+        # Ensure all values are serialized properly
+        formatted_data = [{key: serialize(value) for key, value in entry.items()} for entry in combined_data]
+
+        # Debug: Print API Response to check if data is being fetched correctly
+        print("DEBUG: API Response", json.dumps(formatted_data, indent=4))
+
+        return jsonify(formatted_data)
+
+    except Error as e:
+        print(f"Database error: {e}")
+        return jsonify({"error": "Database error"}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
