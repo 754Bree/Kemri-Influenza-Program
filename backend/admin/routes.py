@@ -205,10 +205,15 @@ def get_form_stats():
         # Ensure all values are serialized properly
         formatted_data = [{key: serialize(value) for key, value in entry.items()} for entry in combined_data]
 
-        # Debug: Print API Response to check if data is being fetched correctly
-        print("DEBUG: API Response", json.dumps(formatted_data, indent=4))
+        # Wrap the data inside a named key
+        response = {
+            "sociodemographics": formatted_data
+        }
 
-        return jsonify(formatted_data)
+        # Debug: Print API Response to check if data is being fetched correctly
+        print("DEBUG: API Response", json.dumps(response, indent=4))
+
+        return jsonify(response)
 
     except Error as e:
         print(f"Database error: {e}")
