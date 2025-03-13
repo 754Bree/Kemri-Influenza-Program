@@ -5,12 +5,14 @@ import jwt
 import datetime
 import mysql.connector
 from admin.routes import admin_bp
-
+import sys
+sys.path.append('./backend')
 from admin.routes import formstats_bp
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
 app = Flask(__name__)
+
 app.config['SECRET_KEY'] = "SECRETKEY"
 bcrypt = Bcrypt(app)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
