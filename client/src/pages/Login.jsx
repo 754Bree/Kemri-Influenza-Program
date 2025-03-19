@@ -41,7 +41,7 @@ const Login = ({ setIsLoggedIn }) => {
                 alert(res.data.message);
 
                 // Store user session
-                //localStorage.setItem("userID", res.data.userID);
+                localStorage.setItem("userID", res.data.userID);
                 localStorage.setItem("eSN", res.data.eSN);
                 localStorage.setItem("firstname", res.data.firstname);
                 //localStorage.setItem("lastname", res.data.lastname);

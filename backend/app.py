@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, make_response
-from flask_bcrypt import Bcrypt
+from flask_bcrypt import Bcrypt 
 from flask_cors import CORS
 import jwt
 import datetime
@@ -269,6 +269,8 @@ def login():
         if conn:
             conn.close()
 
+
+
 @app.route('/logout', methods=['POST'])
 def logout():
     data = request.json
@@ -281,9 +283,18 @@ def logout():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # Ensure the user exists
+        cursor.execute("SELECT * FROM usercredentials WHERE userID = %s", (user_id,))
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
         logout_time = datetime.datetime.utcnow()
         cursor.execute("""
-            UPDATE usercredentials SET session_end = %s, is_active = 1 WHERE userID = %s
+            UPDATE usercredentials 
+            SET session_end = %s, is_active = 0 
+            WHERE userID = %s
         """, (logout_time, user_id))
         conn.commit()
 
@@ -298,6 +309,9 @@ def logout():
             cursor.close()
         if conn:
             conn.close()
+
+
+
 
 @app.route('/check_session', methods=['POST'])
 def check_session():

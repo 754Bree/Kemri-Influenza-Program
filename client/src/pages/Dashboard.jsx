@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Button,
-  Container,
-  Typography,
-  Box,
-  Skeleton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Link,
-  Backdrop,
-} from "@mui/material";
+import {  Button, Container,Typography,Box,Skeleton,Dialog,DialogTitle, DialogContent, DialogActions, Link, Backdrop,} from "@mui/material";
 import { styled } from "@mui/system";
 
 const BlurBackdrop = styled(Backdrop)({

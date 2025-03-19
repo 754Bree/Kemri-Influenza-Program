@@ -60,7 +60,7 @@ const Selection = () => {
       const result = await response.json();
       console.log("Submission successful!", result);
       setSubmissionStatus("success");
-      alert("✅ Data submitted successfully!");
+      alert("✅ Data submitted successfully!Redirecting...");
 
       // ✅ Navigate to /questionnaire2 and set focus
       setTimeout(() => {

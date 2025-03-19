@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from "@mui/material";
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from "@mui/material";
 import AdminSidebar from "./AdminSidebar";
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [editUser, setEditUser] = useState({ username: "", firstname: "", lastname: "", email: "", telephone: "" });
 
   useEffect(() => {
     fetchUsers();
@@ -17,7 +15,7 @@ const AdminUsers = () => {
       const response = await axios.get("http://localhost:5000/admin/users");
       setUsers(response.data);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching users:", error.response?.data || error.message);
     }
   };
 
@@ -26,31 +24,16 @@ const AdminUsers = () => {
       await axios.delete(`http://localhost:5000/admin/users/${userID}`);
       fetchUsers();
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error removing user:", error);
     }
   };
 
-  const handleOpen = (user = null) => {
-    setEditUser(user || { username: "", firstname: "", lastname: "", email: "", telephone: "" });
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setEditUser({ username: "", firstname: "", lastname: "", email: "", telephone: "" });
-  };
-
-  const handleSave = async () => {
+  const handleSuspend = async (userID) => {
     try {
-      if (editUser?.userID) {
-        await axios.put(`http://localhost:5000/admin/users/${editUser.userID}`, editUser);
-      } else {
-        await axios.post("http://localhost:5000/admin/users", editUser);
-      }
+      await axios.put(`http://localhost:5000/admin/users/${userID}/suspend`);
       fetchUsers();
-      handleClose();
     } catch (error) {
-      console.error("Error saving user:", error);
+      console.error("Error suspending user:", error);
     }
   };
 
@@ -60,7 +43,6 @@ const AdminUsers = () => {
       <div style={{ flexGrow: 1, padding: "3%" }}>
         <Typography variant="h3">User Management</Typography>
         <br />
-        <Button variant="contained" color="success" onClick={() => handleOpen()}>Add User</Button>
         <hr />
         <TableContainer component={Paper} sx={{ minWidth: 650 }}>
           <Table>
@@ -72,7 +54,7 @@ const AdminUsers = () => {
                 <TableCell>Last Name</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Telephone</TableCell>
-              
+                <TableCell>Status</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -85,32 +67,16 @@ const AdminUsers = () => {
                   <TableCell>{user.lastname}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.telephone}</TableCell>
-                  
+                  <TableCell style={{ color: user.is_active ? "green" : "red" }}>{user.is_active ? "Active" : "Suspended"}</TableCell>
                   <TableCell>
-                    <Button onClick={() => handleOpen(user)} color="primary">Edit</Button>
-                    <Button onClick={() => handleDelete(user.userID)} color="secondary">Delete</Button>
+                    <Button onClick={() => handleSuspend(user.userID)} color="warning" disabled={!user.is_active}>Suspend</Button>
+                    <Button onClick={() => handleDelete(user.userID)} color="secondary">Remove User</Button>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
-        
-        {/* User Form Dialog */}
-        <Dialog open={open} onClose={handleClose}>
-          <DialogTitle>{editUser?.userID ? "Edit User" : "Add User"}</DialogTitle>
-          <DialogContent>
-            <TextField label="Username" fullWidth margin="dense" value={editUser.username} onChange={(e) => setEditUser({ ...editUser, username: e.target.value })} />
-            <TextField label="First Name" fullWidth margin="dense" value={editUser.firstname} onChange={(e) => setEditUser({ ...editUser, firstname: e.target.value })} />
-            <TextField label="Last Name" fullWidth margin="dense" value={editUser.lastname} onChange={(e) => setEditUser({ ...editUser, lastname: e.target.value })} />
-            <TextField label="Email" fullWidth margin="dense" value={editUser.email} onChange={(e) => setEditUser({ ...editUser, email: e.target.value })} />
-            <TextField label="Telephone" fullWidth margin="dense" value={editUser.telephone} onChange={(e) => setEditUser({ ...editUser, telephone: e.target.value })} />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose} color="secondary">Cancel</Button>
-            <Button onClick={handleSave} color="primary">Save</Button>
-          </DialogActions>
-        </Dialog>
       </div>
     </div>
   );
