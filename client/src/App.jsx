@@ -4,7 +4,7 @@ import { ThemeProvider, createTheme, CssBaseline, Box } from "@mui/material";
 import Login from "./pages/Login";
 import { FormProvider } from "./context/FormContext";
 import Signup from "./pages/Signup";
-import ResetPassword from "./pages/ResetPassword";
+import ResetPassword from "./components/ResetPassword";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Dashboard from "./pages/Dashboard";
@@ -17,6 +17,7 @@ import AdminLogin from "./admin/AdminLogin";
 import AdminDashboard from "./admin/AdminDashboard";
 import AdminUsers from "./admin/UserManagement";
 import FormStats from "./admin/FormStats";
+import ResetPasswordForm from "./components/Resetpage";
 
 
 
@@ -63,6 +64,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/password-reset" element={<ResetPasswordForm />} />
                   <Route path="/submission" element={<Selection />} />
                   <Route path="/questionnaire2" element={<QuestionnaireForm2 />} />
                   <Route path="/questionnaire-3" element={<QuestionnaireForm3 />} />

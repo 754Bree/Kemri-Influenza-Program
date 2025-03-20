@@ -9,16 +9,17 @@ const ResetPassword = () => {
     const navigate = useNavigate();
 
     const handleResetPassword = async (e) => {
-        e.preventDefault();
-        setMessage(""); // Clear previous messages
+    e.preventDefault();
+    setMessage(""); // Clear previous messages
 
-        try {
-            const res = await axios.post("http://127.0.0.1:5000/reset_password", { email });
-            setMessage(res.data.message); // Show success or error message
-        } catch (error) {
-            setMessage("Failed to send reset email. Please try again.");
-        }
-    };
+    try {
+        const res = await axios.post("http://127.0.0.1:5000/request_reset", { email });
+        setMessage(res.data.message); // Show success or error message
+    } catch (error) {
+        setMessage("Failed to send reset email. Please try again.");
+    }
+};
+
 
     return (
         <Container maxWidth="xs">
