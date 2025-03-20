@@ -13,7 +13,7 @@ const ResetPassword = () => {
         setMessage(""); // Clear previous messages
 
         try {
-            const res = await axios.post("http://127.0.0.1:5000/reset-password", { email });
+            const res = await axios.post("http://127.0.0.1:5000/reset_password", { email });
             setMessage(res.data.message); // Show success or error message
         } catch (error) {
             setMessage("Failed to send reset email. Please try again.");

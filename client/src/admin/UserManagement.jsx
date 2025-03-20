@@ -12,7 +12,7 @@ const AdminUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/admin/users");
+      const response = await axios.get("http://localhost:5000/admin/get-users");
       setUsers(response.data);
     } catch (error) {
       console.error("Error fetching users:", error.response?.data || error.message);
@@ -21,21 +21,14 @@ const AdminUsers = () => {
 
   const handleDelete = async (userID) => {
     try {
-      await axios.delete(`http://localhost:5000/admin/users/${userID}`);
+      await axios.delete(`http://localhost:5000/admin/delete-user/${userID}`);
       fetchUsers();
     } catch (error) {
       console.error("Error removing user:", error);
     }
   };
 
-  const handleSuspend = async (userID) => {
-    try {
-      await axios.put(`http://localhost:5000/admin/users/${userID}/suspend`);
-      fetchUsers();
-    } catch (error) {
-      console.error("Error suspending user:", error);
-    }
-  };
+  
 
   return (
     <div style={{ display: "flex" }}>
@@ -54,7 +47,7 @@ const AdminUsers = () => {
                 <TableCell>Last Name</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Telephone</TableCell>
-                <TableCell>Status</TableCell>
+                
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -67,9 +60,9 @@ const AdminUsers = () => {
                   <TableCell>{user.lastname}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.telephone}</TableCell>
-                  <TableCell style={{ color: user.is_active ? "green" : "red" }}>{user.is_active ? "Active" : "Suspended"}</TableCell>
+                  
                   <TableCell>
-                    <Button onClick={() => handleSuspend(user.userID)} color="warning" disabled={!user.is_active}>Suspend</Button>
+                    
                     <Button onClick={() => handleDelete(user.userID)} color="secondary">Remove User</Button>
                   </TableCell>
                 </TableRow>

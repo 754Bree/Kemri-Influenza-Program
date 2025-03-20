@@ -9,7 +9,9 @@ import sys
 sys.path.append('./backend')
 from admin.routes import formstats_bp
 from werkzeug.security import generate_password_hash, check_password_hash
-
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
 
@@ -269,8 +271,109 @@ def login():
         if conn:
             conn.close()
 
+#Reset password api endpoint 
+@app.route('/reset_password_request', methods=['POST'])
+def request_password_reset():
+    data = request.json
+    email = data.get("email")
+
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Check if user exists and is verified
+        cursor.execute("SELECT userID, is_verified FROM usercredentials WHERE email = %s", (email,))
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({"error": "User with this email does not exist"}), 404
+        if user["is_verified"] == 0:
+            return jsonify({"error": "Email is not verified"}), 403
+
+        # Generate JWT reset token (valid for 15 minutes)
+        token_expiry = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+        reset_token = jwt.encode(
+            {"userID": user["userID"], "exp": token_expiry},
+            app.config['SECRET_KEY'],
+            algorithm="HS256"
+        )
+
+        # Send reset email
+        reset_url = f"http://localhost:3000/reset-password?token={reset_token}"
+        send_reset_email(email, reset_url)
+
+        return jsonify({"message": "Password reset email sent"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
+def send_reset_email(email, reset_url):
+    sender_email = "your-email@example.com"
+    sender_password = "your-email-password"
+    subject = "Password Reset Request"
+
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = email
+    msg["Subject"] = subject
+
+    body = f"Click the link below to reset your password:\n{reset_url}\n\nThis link expires in 15 minutes."
+    msg.attach(MIMEText(body, "plain"))
+
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, email, msg.as_string())
+        server.quit()
+    except Exception as e:
+        print(f"Email Error: {e}")
+
+@app.route('/reset_password', methods=['POST'])
+def reset_password():
+    data = request.json
+    token = data.get("token")
+    new_password = data.get("password")
+
+    if not token or not new_password:
+        return jsonify({"error": "Token and new password are required"}), 400
+
+    try:
+        decoded_token = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+        user_id = decoded_token["userID"]
+
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE usercredentials SET hashedpassword = %s WHERE userID = %s", (hashed_password, user_id))
+        conn.commit()
+
+        return jsonify({"message": "Password reset successful"}), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Reset link expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid reset token"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+#Logout api
 @app.route('/logout', methods=['POST'])
 def logout():
     data = request.json
@@ -293,7 +396,7 @@ def logout():
         logout_time = datetime.datetime.utcnow()
         cursor.execute("""
             UPDATE usercredentials 
-            SET session_end = %s, is_active = 0 
+            SET session_end = %s, is_active = 1 
             WHERE userID = %s
         """, (logout_time, user_id))
         conn.commit()
@@ -312,7 +415,7 @@ def logout():
 
 
 
-
+#user session tracking
 @app.route('/check_session', methods=['POST'])
 def check_session():
     data = request.json

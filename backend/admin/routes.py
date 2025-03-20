@@ -109,66 +109,29 @@ def get_active_users():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Add a new user
-@admin_bp.route("/admin/users", methods=["POST"])
-def add_user():
-    try:
-        data = request.json
-        conn = get_db_connection()
-        if not conn:
-            return jsonify({"error": "Database connection failed"}), 500
-
-        cursor = conn.cursor()
-        query = """
-            INSERT INTO usercredentials (username, firstname, lastname, email, telephone)
-            VALUES (%s, %s, %s, %s, %s)
-        """
-        cursor.execute(query, (data["username"], data["firstname"], data["lastname"], data["email"], data["telephone"]))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({"message": "User added successfully"}), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# Update a user
-@admin_bp.route("/admin/users/<int:userID>", methods=["PUT"])
-def update_user(userID):
-    try:
-        data = request.json
-        conn = get_db_connection()
-        if not conn:
-            return jsonify({"error": "Database connection failed"}), 500
-
-        cursor = conn.cursor()
-        query = """
-            UPDATE usercredentials SET username=%s, firstname=%s, lastname=%s, email=%s, telephone=%s 
-            WHERE userID=%s
-        """
-        cursor.execute(query, (data["username"], data["firstname"], data["lastname"], data["email"], data["telephone"], userID))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({"message": "User updated successfully"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# Delete a user
-@admin_bp.route("/admin/users/<int:userID>", methods=["DELETE"])
-def delete_user(userID):
+#API to retrieve users fom the database
+@admin_bp.route("/get-users", methods=["GET"])
+def get_all_users():
     try:
         conn = get_db_connection()
         if not conn:
             return jsonify({"error": "Database connection failed"}), 500
-
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM usercredentials WHERE userID = %s", (userID,))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({"message": "User deleted successfully"}), 200
+        
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT userID, username, firstname, lastname, email, telephone, is_active FROM usercredentials")
+        users = cursor.fetchall()
+        
+        return jsonify(users), 200
+    
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error fetching users: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 # Form Statistics
 def serialize(obj):
@@ -208,6 +171,31 @@ def get_form_stats():
             cursor.close()
         if "conn" in locals() and conn:
             conn.close()
+
+# Delete a user by ID
+@admin_bp.route("/delete-user/<int:user_id>", methods=["DELETE"])
+def delete_user(user_id):
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"error": "Database connection failed"}), 500
+
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM users WHERE userID = %s", (user_id,))
+        conn.commit()
+
+        return jsonify({"message": "User deleted successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
 
 # Register Blueprints
 app.register_blueprint(admin_bp, url_prefix="/admin")
