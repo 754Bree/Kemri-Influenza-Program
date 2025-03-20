@@ -142,9 +142,9 @@ const FormStats = () => {
                         </Typography>
                         {chartData.length > 0 ? (
                             <ResponsiveContainer width="100%" height={400}>
-                                <BarChart layout="vertical" data={chartData}>
-                                    <XAxis type="number" />
-                                    <YAxis dataKey="age" type="category" />
+                                <BarChart layout="horizontal" data={chartData}>
+                                    <XAxis dataKey="age" type="category" />
+                                    <YAxis type="number" />
                                     <Tooltip />
                                     <Legend />
                                     {Object.keys(chartData[0] || {}).filter(key => key !== "age").map((value, idx) => (
